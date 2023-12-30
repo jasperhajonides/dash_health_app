@@ -34,6 +34,9 @@ app.layout = html.Div([
     dcc.Store(id='session-avg-fit-files', storage_type='session'),  # Store for the loaded data 
     dcc.Store(id='update-trigger', data={'timestamp': None}), # nutrition finished openai api update
 
+    dcc.Store(id='carousel-index-store', data={'index': 0}, storage_type='session'), # carousel index
+
+
 
     dbc.Row(
         [

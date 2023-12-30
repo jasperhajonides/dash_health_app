@@ -1,0 +1,7 @@
+.carousel-content {
+    transition: transform 0.5s ease-in-out;
+}
+
+.carousel-btn {
+    transition: transform 0.5s ease-in-out;
+}

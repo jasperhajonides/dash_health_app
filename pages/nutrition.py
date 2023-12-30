@@ -18,9 +18,12 @@ import io
 import os
 import json
 
+
+
 from functions.nutrition_processing import *
 from functions.openai_api_calls import * 
 from functions.nutrition_plots import *
+from functions.nutrition_image import *
 
 
 # Function to parse the contents of the uploaded file
@@ -28,61 +31,6 @@ def parse_contents(contents):
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
     return decoded
-
-# Function to resize and crop the image
-def resize_and_crop_image(image_data, pixels_size = 512):
-    # Open the image and determine smaller side
-    image = Image.open(io.BytesIO(image_data))
-    width, height = image.size
-    new_size = min(width, height)
-
-    # Resize with the smaller side being 512 pixels
-    ratio = pixels_size / new_size
-    new_width, new_height = int(ratio * width), int(ratio * height)
-    image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-
-    # Crop to a 512x512 square
-    left = (new_width - pixels_size) / 2
-    top = (new_height - pixels_size) / 2
-    right = (new_width + pixels_size) / 2
-    bottom = (new_height + pixels_size) / 2
-    image = image.crop((left, top, right, bottom))
-
-    # Convert the image to binary data for storage
-    buffered = io.BytesIO()
-    image.save(buffered, format="JPEG")
-    return buffered.getvalue()
-
-
-def save_image(stored_image_data, file_name):
-    if (file_name is None) or (len(file_name) <= 1):
-        file_name = 'template'
-            # Decode the base64 string
-    image_data = base64.b64decode(stored_image_data)
-
-    # Create the filename
-    today_str = datetime.now().strftime('%Y%m%d')
-    item_name = file_name.replace(' ', '_')
-    filename = f"{today_str}_{item_name}.png"
-
-    # Define the path to the images folder relative to the root of the project
-    script_dir = os.path.dirname(__file__)  # Directory of the current script
-    root_dir = os.path.dirname(script_dir)  # Root directory of the project
-    images_folder = os.path.join(root_dir, 'assets', 'images')
-
-    # Create the directory if it doesn't exist
-    if not os.path.exists(images_folder):
-        os.makedirs(images_folder)
-
-    # Full path for the image
-    image_path = os.path.join(images_folder, filename)
-
-    # Save the image
-    with open(image_path, 'wb') as f:
-        f.write(image_data)
-
-    print(f"Image saved as {filename}")
-
 
 
 
@@ -93,21 +41,48 @@ def format_json_to_html(json_data):
         return html.Ul([html.Li(format_json_to_html(item)) for item in json_data])
     else:
         return json_data  # For basic data types
+    
+def nutrition_numbers_layout():
+    # Assuming nutrition_numbers_container is a layout component
+    return create_nutrition_display()
+
+def combined_plots_layout():
+    # Create a layout that contains both the nutrient pie chart and the calories line plot side-by-side
+    return html.Div([
+        dcc.Graph(figure=create_nutrient_pie_chart(), style={'width': '50%', 'display': 'inline-block'}),
+        dcc.Graph(figure=create_calories_line_plot(), style={'width': '50%', 'display': 'inline-block'})
+    ])
+
+# List of carousel item functions
+carousel_items = [nutrition_numbers_layout, combined_plots_layout]
+
 
 def nutrition_page():
-    # first plot
-    nutrient_pie_chart = create_nutrient_pie_chart()
-    calories_line_plot = create_calories_line_plot()
-    nutrition_numbers_container =  create_nutrition_display()
-
 
     layout = html.Div([
     html.H2("Nutritional Information", className="text-center mb-3"),
 
-    # Add the Pie Chart here
-    dcc.Graph(figure=nutrient_pie_chart, style={'width': '50%', 'display': 'inline-block'}),
-    dcc.Graph(figure=calories_line_plot, style={'width': '50%', 'display': 'inline-block'}),
-    nutrition_numbers_container,
+     # Carousel Content
+    html.Div([
+        # Left navigation button
+        html.Div(
+            dbc.Button('<', id='carousel-left-btn', color='light', className='carousel-btn', 
+                        style={'height': '80px', 'width': '40px'}),
+            style={'position': 'absolute', 'left': '0', 'top': '50%', 'transform': 'translateY(-50%)'}
+        ),
+
+        # Carousel content container
+        html.Div(id='carousel-content', className='carousel-content', 
+                    style={'height': '400px', 'overflow': 'hidden'}),
+
+        # Right navigation button
+        html.Div(
+            dbc.Button('>', id='carousel-right-btn', color='light', className='carousel-btn', 
+                        style={'height': '80px', 'width': '40px'}),
+            style={'position': 'absolute', 'right': '0', 'top': '50%', 'transform': 'translateY(-50%)'}
+        ),
+    ], style={'position': 'relative', 'height': '400px', 'margin-left': 'auto', 'margin-right': 'auto', 'width': '100%'}),
+
     html.H3("Enter Nutritional Data", className="mb-2"),
     html.P("Enter an image of your intake and/or a description:", className="mb-2"),
 
@@ -285,7 +260,7 @@ def register_callbacks_nutrition(app):
         print('Button clicked. Running function to start calling OpenAI API.', input_text)
 
         # Call the OpenAI API with the image and input text
-        response_text = openai_vision_call(stored_image_data, input_text)
+        response_text = openai_vision_call(stored_image_data, textprompt=input_text)
         # response_text = '```json\n{\n  "name item": "raisin pastry",\n  "grams in picture": 100,\n  "total calories (kcal)": 290, \n  "carbohydrates (g)": 45, \n  "of which sugar (g)": 12,\n  "fiber (g)": 2,\n  "protein (g)": 6, \n  "saturated fat (g)": 6,\n  "unsaturated fat (g)": 4,\n  "cholesterol (g)": 0.1\n}\n```'
         
         json_data = preprocess_and_load_json(response_text)
@@ -303,11 +278,11 @@ def register_callbacks_nutrition(app):
             df_new['date'] = now.date()
             df_new['time'] = now.strftime("%H:%M:%S")
             if json_data and 'name item' in json_data:
-                df_new['name'] = json_data['name item'].replace('"', '').replace("'", "").replace(' ', '_')
+                df_new['name'] = json_data['name item'].replace('"', '').replace("'", "")
             else:
                 df_new['name'] = 'template'
-            today_str = datetime.now().strftime('%Y%m%d')
-            df_new['file_name'] = f"{today_str}_{df_new['name'].loc[0]}.png"
+            today_str = datetime.now().strftime('%Y%m%d_%HH:%MM')
+            df_new['file_name'] = f"{today_str}_{df_new['name'].loc[0].replace(' ', '_')}.png"
             df_new['units'] = 1
 
             # Read existing data or create new file
@@ -336,42 +311,34 @@ def register_callbacks_nutrition(app):
             print('not updating the list with todays entries.')
             return json_nutrition_std, {'timestamp': datetime.now().isoformat()}, response_text.split('```')[0]
         
+    @app.callback(
+        [Output('carousel-content', 'children'),
+        Output('carousel-index-store', 'data')],
+        [Input('carousel-left-btn', 'n_clicks'),
+        Input('carousel-right-btn', 'n_clicks')],
+        [State('carousel-index-store', 'data')]
+    )
+    def update_carousel_content(left_clicks, right_clicks, index_data):
+        ctx = dash.callback_context
 
+        # Retrieve the current index from dcc.Store
+        current_index = index_data['index']
 
-    # @app.callback(
-    #     Output('update-status', 'children'),  # Replace with an appropriate output
-    #     [Input('submit-nutrition-data', 'n_clicks')],
-    #     [State('nutritional-json-from-image', 'data')]
-    # )
-    # def update_csv(n_clicks, json_data):
-    #     if n_clicks is None or json_data is None:
-    #         raise dash.exceptions.PreventUpdate
+        if not ctx.triggered:
+            # Default content on initial load
+            return carousel_items[current_index](), index_data
+        else:
+            button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-    #     filename = 'data/nutrition_entries.csv'
-    #     now = datetime.datetime.now()
+            if button_id == 'carousel-right-btn':
+                # Increment index and loop back if at the end
+                current_index = (current_index + 1) % len(carousel_items)
+            elif button_id == 'carousel-left-btn':
+                # Decrement index and loop back if at the start
+                current_index = (current_index - 1) % len(carousel_items)
 
-    #     # Convert JSON to DataFrame
-    #     df_new = pd.DataFrame([json_data])
-    #     df_new['date'] = now.date()
-    #     df_new['time'] = now.strftime("%H:%M:%S")
-
-    #     # Read existing data or create new file
-    #     try:
-    #         df = pd.read_csv(filename)
-
-    #         # Check each key in JSON data
-    #         for key in df_new.columns:
-    #             if key not in df.columns:
-    #                 df[key] = None  # Add new column for unmatched keys
-
-    #         # Concatenate and reorder columns to match
-    #         df = pd.concat([df, df_new], axis=0, sort=False).reindex(columns=df.columns)
-    #     except FileNotFoundError:
-    #         df = df_new
-
-    #     # Save updated data
-    #     df.to_csv(filename, index=False)
-    #     return "Data saved successfully"
+            # Call the function to get the layout and update the index
+            return carousel_items[current_index](), {'index': current_index}
 
 
 
@@ -383,60 +350,144 @@ def register_callbacks_nutrition(app):
             Input('submit-nutrition-data', 'n_clicks'),
             Input('refresh-entries-button', 'n_clicks'),
             Input({'type': 'delete-button', 'index': ALL}, 'n_clicks'),
+            Input({'type': 'unit-increase', 'index': ALL}, 'n_clicks'),
+            Input({'type': 'unit-decrease', 'index': ALL}, 'n_clicks'),
             Input('update-trigger', 'data')
         ],
     )
-    def update_entries(submit_clicks, refresh_clicks, delete_clicks, update_trigger):
+    def update_entries(submit_clicks, refresh_clicks, delete_clicks, increase_clicks, decrease_clicks, update_trigger):
         ctx = callback_context
-
-        # Determine which input triggered the callback
         trigger_id = ctx.triggered[0]['prop_id'] if ctx.triggered else None
 
-        # if not ctx.triggered:
-        #     raise PreventUpdate
+        if trigger_id is None:
+            raise dash.exceptions.PreventUpdate
+
 
         filename = 'data/nutrition_entries.csv'
         try:
             df = pd.read_csv(filename)
+            # Initialize 'units' column if it doesn't exist
+            if 'units' not in df.columns:
+                df['units'] = 1
+            else:
+                # Set 'units' to 1 for rows where it is NaN or non-existent
+                df['units'] = df['units'].fillna(1).apply(lambda x: 1 if pd.isna(x) or x <= 0 else x)
         except FileNotFoundError:
             return "No entries found."
         
-        # Handle delete action
-        if trigger_id and 'delete-button' in trigger_id:
+        # Handling delete, increase, and decrease actions
+        if 'delete-button' in trigger_id:
             button_index = json.loads(trigger_id.split('.')[0])['index']
             df = df.drop(df.index[button_index])
-            df.to_csv(filename, index=False)
-
-        # Sort the DataFrame to show the most recent entries first
+        elif 'unit-increase' in trigger_id or 'unit-decrease' in trigger_id:
+            button_index = json.loads(trigger_id.split('.')[0])['index']
+            increment = 1 if 'unit-increase' in trigger_id else -1
+            df.at[button_index, 'units'] = max(0, df.at[button_index, 'units'] + increment)
+        
+        df.to_csv(filename, index=False)
         df = df.sort_values(by='time', ascending=False)
 
-        # directory in which the current images are written
-        script_dir = os.path.dirname(__file__)  # Directory of the current script
-        root_dir = os.path.dirname(script_dir)  # Root directory of the project
+        script_dir = os.path.dirname(__file__)
+        root_dir = os.path.dirname(script_dir)
         images_folder = os.path.join(root_dir, 'images')
 
         entry_boxes = []
         for index, row in df.iterrows():
-            # Use 'default_file_name.png' if 'file_name' is NaN or not present
-            image_filename = row['file_name'] if 'file_name' in row and pd.notna(row['file_name']) else 'default_file_name.png'
-            image_url = f'/assets/images/{image_filename}'  # Construct the URL path
+            image_filename = row.get('file_name', 'default_file_name.png')
+            image_path = os.path.join(images_folder, image_filename)
+
+
+            # Unit Counter Part
+                # Unit Counter Part
+            unit_counter = html.Div([
+                html.Button('+', id={'type': 'unit-increase', 'index': index}, 
+                            style={'width': '30px', 'height': '30px', 'border-radius': '15px', 
+                                'background-color': 'lightblue', 'border': 'none', 'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
+                                'margin-bottom': '5px'}),
+                html.Div(str(row.get('units', 1)), style={'text-align': 'center'}),
+                html.Button('-', id={'type': 'unit-decrease', 'index': index},
+                            style={'width': '30px', 'height': '30px', 'border-radius': '15px', 
+                                'background-color': 'lightblue', 'border': 'none', 'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
+                                'margin-top': '5px'})
+            ], style={'width': '10%', 'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center', 'justifyContent': 'center'})
+
+            # Macros and Additional Nutritional Info Part
+            nutritional_info = html.Div([
+                html.H4(row.get('name', 'Item Name'), style={'fontSize': '28px'}),  # Title from row['name']
+                
+                # Serving size and Calories row
+                
+                # Serving size and Calories row
+                html.Div([
+                    html.Span('🍽️', style={'fontSize': '20px'}),  # Placeholder icon for serving size
+                    html.Span(f"{row.get('weight', 'N/A')} g", style={'marginLeft': '5px', 'marginRight': '20px'}),
+                    html.Span('🔥', style={'fontSize': '20px'}),  # Placeholder icon for calories
+                    html.Span(f"{row.get('calories', 'N/A')} kcal", style={'marginLeft': '5px'})
+                ], style={'display': 'flex', 'alignItems': 'center', 'marginBottom': '10px'}),
+
+                
+                # Two-column layout for macros and additional info
+                html.Div([
+                    # Column 1: Macros
+                    html.Div([
+                        html.Ul([
+                            html.Li(f"Fat: {row.get('fat', 'N/A')} g"),
+                            html.Li(f"Carbohydrates: {row.get('carbs', 'N/A')} g"),
+                            html.Li(f"Protein: {row.get('protein', 'N/A')} g"),
+                        ], style={'listStyleType': 'none', 'paddingLeft': '0'}),
+                    ], style={'width': '50%', 'display': 'inline-block'}),
+
+                    # Column 2: Additional Info
+                    html.Div([
+                        html.Ul([
+                            html.Li(f"Fiber: {row.get('fiber', 'N/A')} g"),
+                            html.Li(f"Sugar: {row.get('sugar', 'N/A')} g"),
+                            html.Li(f"Unsaturated Fat: {row.get('unsaturated fat', 'N/A')} g"),
+                            html.Li(f"Saturated Fat: {row.get('saturated fat', 'N/A')} g"),
+                            html.Li(f"Cholesterol: {row.get('cholesterol', 'N/A')} mg"),
+                        ], style={'listStyleType': 'none', 'paddingLeft': '0'}),
+                    ], style={'width': '50%', 'display': 'inline-block'}),
+                ], style={'display': 'flex'}),
+
+            ], style={'width': '65%', 'display': 'inline-block'})
+
+                # Delete Button Layout
+            delete_button = html.Div([
+                html.Button('×', id={'type': 'delete-button', 'index': index},  # Using the multiply symbol
+                            style={
+                                'width': '30px', 
+                                'height': '30px', 
+                                'lineHeight': '30px',  # Adjusted for vertical centering
+                                'padding': '0',  # Remove padding to fit symbol within the button
+                                'border': '1px solid darkgrey', 
+                                'background-color': 'white', 
+                                'color': 'darkgrey', 
+                                'font-weight': 'bold', 
+                                'font-size': '20px',  # Font size for the symbol
+                                'text-align': 'center',
+                                'cursor': 'pointer',
+                                'position': 'absolute', 
+                                'top': '10px',  # Positioning the button within the box
+                                'right': '10px'
+                            })
+            ])
 
             box = html.Div([
-                # Image part
-                html.Div([
-                    html.Img(src=image_url, style={'width': '256px', 'height': '256px'})
-                ], style={'width': '30%', 'display': 'inline-block'}),
+                # Unit Counter Part
+                unit_counter,
                 
-                # Data part
+                # Image Part
                 html.Div([
-                    html.Ul([html.Li(f"{key}: {value}") for key, value in row.drop(['file_name', 'date', 'time']).items()])
-                ], style={'width': '70%', 'display': 'inline-block'}),
+                    html.Img(src=image_path, style={'width': '192px', 'height': '192px'})
+                ], style={'width': '25%', 'display': 'inline-block'}),
+
+                # Data Part
+                nutritional_info,
+
                 
-                # Delete button
-                html.Div([
-                    html.Button('X', id={'type': 'delete-button', 'index': index}, className='delete-btn')
-                ], style={'position': 'absolute', 'top': '0', 'right': '0'})
-            ], style={'display': 'flex', 'border': '1px solid black', 'padding': '10px', 'position': 'relative', 'margin': '10px 0'})
+                # Delete Button
+                delete_button,
+                ], style={'display': 'flex', 'border': '1px solid black', 'boxShadow': '0 4px 8px rgba(0,0,0,0.1)', 'padding': '10px', 'position': 'relative', 'margin': '10px 0'})
             entry_boxes.append(box)
 
         return entry_boxes

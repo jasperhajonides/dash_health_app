@@ -24,7 +24,7 @@ def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
 
-def openai_vision_call(image, client, textprompt=None):
+def openai_vision_call(image, textprompt=None):
 
     prompt = """Lets play a game: If there is a food item in this picture: lets try to estimate the serving size together and lets see if we can estimate or look up the nutritional values (in grams or kcal) of the food (serving size in picture; 
         {'name item': ,
@@ -39,6 +39,7 @@ def openai_vision_call(image, client, textprompt=None):
         'cholesterol (g): ,
         } Only output a single value per property, no ranges. And format output in a json."""
     if textprompt is not None:
+        print('ADDING ADDITIONAL INSTRUCTIONS:::::::', textprompt)
         prompt = prompt + f""" Some additional information about this image is that it contains: {textprompt}"""
 
 
@@ -47,7 +48,8 @@ def openai_vision_call(image, client, textprompt=None):
         image = encode_image(image)
 
     api_key = os.getenv("API_KEY")
-    client = OpenAI(api_key=api_key) #"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")
+    print(api_key)
+    client = OpenAI(api_key=api_key) 
 
     response = client.chat.completions.create(
         model="gpt-4-vision-preview",
