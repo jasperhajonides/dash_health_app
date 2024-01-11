@@ -35,6 +35,8 @@ app.layout = html.Div([
     dcc.Store(id='update-trigger', data={'timestamp': None}), # nutrition finished openai api update
 
     dcc.Store(id='carousel-index-store', data={'index': 0}, storage_type='session'), # carousel index
+    dcc.Store(id='selected-food-item-store', storage_type='session'), # selected row ai-toggle off
+    dcc.Store(id='item-submission-state', data={'submitted': False}), # whether we pressed item submission or not in the nutrition app
 
 
 

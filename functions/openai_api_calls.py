@@ -37,6 +37,7 @@ def openai_vision_call(image, textprompt=None):
         'saturated fat (g)': 
         'unsaturated fat (g)': ,
         'cholesterol (g): ,
+        'glycemic index (GI)': ,
         } Only output a single value per property, no ranges. And format output in a json."""
     if textprompt is not None:
         print('ADDING ADDITIONAL INSTRUCTIONS:::::::', textprompt)

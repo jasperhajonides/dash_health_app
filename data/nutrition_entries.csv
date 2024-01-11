@@ -1,31 +1,295 @@
-weight,calories,carbohydrates,protein,fat,saturated fat,unsaturated fat,sugar,fiber,cholesterol,date,time,name,file_name,units
-0.0,45.0,11.5,0.7,0.0,0.0,0.0,9.3,1.5,0.0,2023-12-28,11:57:18,template,20231228_template.png,1
-100.0,47.0,11.0,0.7,0.0,0.0,0.0,9.0,0.2,0.0,2023-12-28,12:17:20,Orange_juice,20231228_Orange_juice.png,1
-250.0,210.0,38.0,8.0,3.0,1.0,2.0,12.0,5.0,0.004,2023-12-28,12:18:11,Oatmeal_with_a_dollop_of_yogurt,20231228_Oatmeal_with_a_dollop_of_yogurt.png,1
-80.0,250.0,23.0,10.0,9.0,2.0,7.0,4.0,4.0,0.0,2023-12-28,12:28:29,Slice_of_whole_wheat_bread_with_peanut_butter,20231228_Slice_of_whole_wheat_bread_with_peanut_butter.png,1
-80.0,260.0,30.0,10.0,11.0,3.0,8.0,5.0,4.0,0.0,2023-12-28,12:28:59,Slice_of_bread_with_peanut_butter,20231228_Slice_of_bread_with_peanut_butter.png,1
-140.0,350.0,35.0,15.0,10.0,5.0,5.0,5.0,3.0,0.0,2023-12-28,14:07:22,Mini_pizzas,20231228_Mini_pizzas.png,1
-128.0,310.0,35.0,12.0,12.0,7.0,5.0,5.0,1.0,20.0,2023-12-28,14:08:20,Pepperoni_Pizza_Pocket,20231228_Pepperoni_Pizza_Pocket.png,1
-10.0,50.0,8.0,1.0,1.0,0.0,1.0,0.0,0.0,0.0,2023-12-28,20:52:58,Cracker,20231228_Cracker.png,1
-10.0,49.0,6.0,0.0,3.0,2.0,1.0,1.0,0.0,5.0,2023-12-28,20:53:18,Butter_Biscuit,20231228_Butter_Biscuit.png,1
-9.0,35.0,7.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2023-12-28,20:53:41,Rice_Cake,20231228_Rice_Cake.png,1
-9.0,35.0,7.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2023-12-28,20:53:59,Rice_Cake,20231228_Rice_Cake.png,1
-9.0,35.0,7.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2023-12-28,20:54:24,Rice_cake,20231228_Rice_cake.png,1
-9.0,35.0,7.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2023-12-28,20:55:02,Rice_cake,20231228_Rice_cake.png,1
-30.0,150.0,10.0,3.0,6.0,1.0,5.0,0.0,1.0,5.0,2023-12-28,20:56:19,Cracker_with_pesto,20231228_Cracker_with_pesto.png,1
-25.0,60.0,7.0,2.0,3.0,1.0,2.0,0.0,1.0,2.0,2023-12-28,20:56:40,Cracker_with_pesto_spread,20231228_Cracker_with_pesto_spread.png,1
-0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2023-12-28,20:57:36,template,20231228_template.png,1
-0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2023-12-28,20:57:57,template,20231228_template.png,1
-500.0,600.0,80.0,20.0,15.0,5.0,10.0,8.0,10.0,50.0,2023-12-28,20:59:10,"Mixed_Plate_(Rice,_Curry,_Vegetables,_Salad,_Sauce)","20231228_Mixed_Plate_(Rice,_Curry,_Vegetables,_Salad,_Sauce).png",1
-500.0,550.0,75.0,20.0,15.0,5.0,10.0,8.0,8.0,20.0,2023-12-28,21:00:50,"Mixed_plate_with_veggies,_noodles,_rice,_and_sauces","20231228_Mixed_plate_with_veggies,_noodles,_rice,_and_sauces.png",1
-350.0,350.0,45.0,15.0,10.0,5.0,5.0,5.0,4.0,50.0,2023-12-28,21:02:23,"mixed_plate_with_noodles,_vegetables,_and_sauces","20231228_mixed_plate_with_noodles,_vegetables,_and_sauces.png",1
-10.0,55.0,6.0,0.0,4.0,3.0,1.0,5.0,0.0,3.0,2023-12-28,21:04:06,Chocolate_Seashell,20231228_Chocolate_Seashell.png,2
-7.0,37.0,4.0,0.0,2.0,2.0,0.0,3.0,0.0,1.0,2023-12-28,21:04:57,chocolate_heart,20231228_chocolate_heart.png,1
-70.0,280.0,35.0,4.0,12.0,7.0,5.0,10.0,1.0,0.0,2023-12-28,23:32:35,Sugar-dusted_Jam_Doughnut,20231228_Sugar-dusted_Jam_Doughnut.png,1
-250.0,190.0,30.0,8.0,4.0,3.0,1.0,24.0,2.0,0.0,2023-12-29,20:26:40,Hot_Chocolate,20231229_Hot_Chocolate.png,1
-0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2023-12-29,20:30:55,template,20231229_template.png,1
-100.0,387.0,78.0,13.0,4.0,0.0,4.0,0.0,15.0,0.0,2023-12-29,20:32:09,plain_air-popped_popcorn,20231229_plain_air-popped_popcorn.png,1
-30.0,110.0,28.0,0.0,0.0,0.0,0.0,28.0,0.0,0.0,2023-12-29,20:33:26,Cotton_Candy,20231229_Cotton_Candy.png,1
-250.0,250.0,45.0,12.0,2.0,1.0,1.0,5.0,10.0,186.0,2023-12-29,20:34:15,Green_beans_and_potatoes_with_egg,20231229_Green_beans_and_potatoes_with_egg.png,1
-0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2023-12-29,20:46:15,template,20231229_template.png,1
-0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2023-12-29,22:47:29,template,20231229_22H:47M_template.png,1
+Protein (g),Fat (g),Carbohydrate (g),sugar (g),fiber (g),Calories,Weight,saturated fat,unsaturated fat,file_name,date,time,name,units,weight,calories,carbohydrates,protein,fat,sugar,fiber,cholesterol,meal_type,llm_output,GI
+,,,,,,,0.0,0.0,20240105_22H:39M_template.png,2024-01-05,22:39:19,template,1,0.0,188.0,43.4,4.8,0.7,43.4,0.0,0.0,Lunch,,
+,,,,,,,13.18,6.65,20240105_22H:40M_template.png,2024-01-05,22:40:01,template,1,0.0,325.0,25.4,6.2,42.63,15.5,0.6,0.0,Dinner,,
+,,,,,,,10.64,5.73,20240105_22H:45M_template.png,2024-01-05,22:45:34,template,1,0.0,460.0,73.7,5.5,34.37,43.0,0.0,0.0,Dessert,,
+,,,,,,,0.0,0.0,20240105_23H:25M_template.png,2024-01-05,23:25:36,template,1,0.0,188.0,43.4,4.8,0.7,43.4,0.0,0.0,Other,,
+,,,,,,,4.41,2.42,20240105_23H:27M_template.png,2024-01-05,23:27:07,template,1,0.0,133.0,10.9,1.7,16.33,7.4,2.5,0.0,Other,,
+,,,,,,,3.27,4.42,"20240105_23H:30M_Banana_bread,_homemade.png",2024-01-05,23:30:12,"Banana bread, homemade",1,0.0,331.0,53.9,4.4,20.09,36.3,0.0,0.0,Breakfast,,
+,,,,,,,5.87,5.64,"20240105_23H:31M_Tarts,_custard,_individual.png",2024-01-05,23:31:26,"Tarts, custard, individual",1,0.0,263.0,28.7,6.7,25.81,14.2,1.1,0.0,Lunch,,
+,,,,,,,5.87,5.64,"20240105_23H:32M_Tarts,_custard,_individual.png",2024-01-05,23:32:23,"Tarts, custard, individual",1,0.0,263.0,28.7,6.7,25.81,14.2,1.1,0.0,Dinner,,
+,,,,,,,9.65,10.12,"20240108_22H:06M_Pastries,_Greek,_baklava,_retail.png",2024-01-08,22:06:24,"Pastries, Greek, baklava, retail",1,0.0,456.0,54.1,6.7,44.87,29.0,2.0,0.0,Dessert,,
+,,,,,,,0.39,2.14,"20240108_22H:07M_Curry,_vegetable,_with_yogurt,_UK_type,_homemade.png",2024-01-08,22:07:26,"Curry, vegetable, with yogurt, UK type, homemade",1,0.0,64.0,4.7,2.2,6.53,4.0,0.0,0.0,Other,,
+,,,,,,,7.0,10.0,20240108_22H:07M_Baklava.png,2024-01-08,22:07:57,Baklava,1,100.0,420.0,55.0,6.0,17.0,30.0,2.0,0.0,Other,,
+,,,,,,,7.0,10.0,20240108_22H:17M_Baklava.png,2024-01-08,22:17:27,Baklava,1,100.0,420.0,55.0,6.0,17.0,30.0,2.0,20.0,Breakfast,,
+,,,,,,,7.0,5.0,20240108_22H:17M_Baklava.png,2024-01-08,22:17:50,Baklava,1,100.0,420.0,45.0,6.0,12.0,30.0,2.0,20.0,Lunch,,
+,,,,,,,7.0,16.0,20240108_22H:17M_Baklava.png,2024-01-08,22:17:59,Baklava,1,100.0,420.0,45.0,6.0,23.0,30.0,2.0,20.0,Dinner,,
+,,,,,,,3.0,2.0,20240108_22H:58M_Fruitcake.png,2024-01-08,22:58:48,Fruitcake,1,80.0,280.0,42.0,3.0,5.0,25.0,2.0,35.0,Dessert,,
+,,,,,,,3.0,2.0,20240108_23H:12M_bread_pudding.png,2024-01-08,23:12:15,bread pudding,1,200.0,330.0,60.0,9.0,5.0,30.0,3.0,150.0,Other,,
+,,,,,,,3.0,2.0,20240108_23H:12M_bread_pudding.png,2024-01-08,23:12:56,bread pudding,1,150.0,330.0,60.0,9.0,5.0,30.0,2.0,150.0,Other,,
+,,,,,,,3.0,8.0,20240108_23H:19M_Peanut_butter_on_whole_grain_bread.png,2024-01-08,23:19:46,Peanut butter on whole grain bread,1,100.0,290.0,30.0,12.0,11.0,5.0,5.0,0.0,Breakfast,,
+,,,,,,,2.0,5.0,20240108_23H:24M_Peanut_butter_on_whole_wheat_bread_slice.png,2024-01-08,23:24:54,Peanut butter on whole wheat bread slice,1,80.0,210.0,18.0,9.0,7.0,4.0,3.0,0.0,Lunch,,
+,,,,,,,0.0,0.0,20240109_08H:37M_Identified_Food_Item.png,2024-01-09,08:37:53,Identified Food Item,1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Dinner,,
+,,,,,,,2.0,1.0,20240109_08H:38M_Fruit_Bread_Pudding.png,2024-01-09,08:38:09,Fruit Bread Pudding,1,200.0,300.0,55.0,6.0,3.0,20.0,2.0,0.0,Dessert,,
+,,,,,,,0.0,1.0,20240109_08H:40M_Raisin_Bun.png,2024-01-09,08:40:54,Raisin Bun,1,90.0,270.0,45.0,6.0,1.0,14.0,2.0,15.0,Other,,
+,,,,,,,0.0,0.0,20240109_21H:37M_template.png,2024-01-09,21:37:17,template,1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Other,,
+,,,,,,,5.0,3.0,20240109_21H:37M_Raisin_Bread_Pudding.png,2024-01-09,21:37:28,Raisin Bread Pudding,1,150.0,375.0,55.0,9.0,8.0,22.0,2.0,0.0,Breakfast,,
+,,,,,,,0.0,0.0,20240109_21H:37M_template.png,2024-01-09,21:37:57,template,1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Lunch,,
+,,,,,,,9.0,4.0,20240109_21H:38M_bread_pudding.png,2024-01-09,21:38:08,bread pudding,1,200.0,330.0,58.0,9.0,13.0,30.0,2.0,0.2,Dinner,,
+,,,,,,,5.0,5.0,20240109_21H:38M_Deep_fried_dough_with_raisins.png,2024-01-09,21:38:22,Deep fried dough with raisins,1,120.0,420.0,45.0,5.0,10.0,14.0,2.0,20.0,Dessert,,
+,,,,,,,3.0,2.0,20240109_21H:50M_Bread_pudding.png,2024-01-09,21:50:45,Bread pudding,1,150.0,330.0,58.0,9.0,5.0,30.0,1.0,95.0,Other,,
+,,,,,,,4.5,1.5,20240109_22H:28M_Hot_chocolate.png,2024-01-09,22:28:14,Hot chocolate,1,250.0,192.0,26.0,7.0,6.0,24.0,1.5,0.02,Other,,
+,,,,,,,3.0,1.0,20240109_22H:44M_Hot_Chocolate.png,2024-01-09,22:44:28,Hot Chocolate,1,250.0,190.0,30.0,6.0,4.0,25.0,1.0,0.0,Breakfast,,
+,,,,,,,9.58,7.99,"20240110_08H:30M_Biscuits,_cookies,_chocolate_chip,_American_style.png",2024-01-10,08:30:27,"Biscuits, cookies, chocolate chip, American style",1,100.0,440.0,60.6,5.2,38.87,40.5,2.5,0.0,Lunch,,
+,,,,,,,34.15,29.54,"20240110_08H:34M_Butter,_spreadable_(75-80%_fat).png",2024-01-10,08:34:45,"Butter, spreadable (75-80% fat)",1,100.0,715.0,0.5,0.4,142.79,0.5,0.0,0.0,Dinner,,
+,,,,,,,12.78,19.91,"20240110_08H:35M_Peanut_butter,_smooth.png",2024-01-10,08:35:42,"Peanut butter, smooth",1,100.0,607.0,13.1,22.8,84.49,6.7,6.6,0.0,Dessert,,
+,,,,,,,7.0,10.0,20240110_20H:44M_Lasagna_Slice.png,2024-01-10,20:44:38,Lasagna Slice,1,250.0,350.0,35.0,22.0,17.0,5.0,2.0,0.0,,,
+,,,,,,,11.2,16.0,20240110_20H:45M_Lasagna_Slice.png,2024-01-10,20:45:00,Lasagna Slice,1,250.0,560.0,56.0,35.2,27.200000000000003,8.0,3.2,0.0,Dinner,,
+,,,,,,,6.0,3.0,20240110_20H:46M_Vegetable_Lasagna.png,2024-01-10,20:46:24,Vegetable Lasagna,1,250.0,350.0,40.0,12.0,9.0,8.0,5.0,30.0,,,
+,,,,,,,7.0,10.0,20240110_20H:56M_lasagna.png,2024-01-10,20:56:23,lasagna,1,250.0,350.0,35.0,20.0,17.0,5.0,3.0,50.0,,,
+,,,,,,,0.02,0.0,"20240110_21H:08M_Apple_juice_concentrate,_unsweetened,_commerical.png",2024-01-10,21:08:38,"Apple juice concentrate, unsweetened, commerical",1,100.0,44.6,11.52,0.1,0.1399999999999999,11.52,0.0,0.0,Breakfast,,
+,,,,,,,0.02,0.0,"20240110_21H:08M_Apple_juice_concentrate,_unsweetened,_commerical.png",2024-01-10,21:08:38,"Apple juice concentrate, unsweetened, commerical",1,100.0,44.6,11.52,0.1,0.1399999999999999,11.52,0.0,0.0,Breakfast,,
+,,,,,,,0.02,0.0,"20240110_21H:08M_Apple_juice_concentrate,_unsweetened,_commerical.png",2024-01-10,21:08:38,"Apple juice concentrate, unsweetened, commerical",1,100.0,44.6,11.52,0.1,0.1399999999999999,11.52,0.0,0.0,Breakfast,,
+,,,,,,,0.0802,0.033,"20240110_21H:11M_Bhaji,_carrot,_potato_and_pea,_with_butter,_homemade.png",2024-01-10,21:11:21,"Bhaji, carrot, potato and pea, with butter, homemade",1,100.0,2.32,0.258,0.044,0.2452,0.136,0.0819999999999999,0.0,Other,,
+,,,,,,,0.0,0.0,"20240110_21H:12M_Mandarin_oranges,_canned_in_juice,_whole_contents.png",2024-01-10,21:12:17,"Mandarin oranges, canned in juice, whole contents",1,100.0,1.28,0.308,0.0279999999999999,0.0,0.308,0.0,0.0,Breakfast,,
+,,,,,,,0.0496,0.0512,"20240110_21H:18M_Doughnuts,_with_jam.png",2024-01-10,21:18:58,"Doughnuts, with jam",1,100.0,3.21,0.484,0.054,0.2318,0.203,0.017,0.0,Breakfast,,
+,,,,,,,12.0,10.0,20240110_21H:26M_danish_pastry.png,2024-01-10,21:26:41,danish pastry,1,100.0,400.0,45.0,6.0,22.0,18.0,2.0,30.0,,,
+,,,,,,,1.2000000000000002,1.0,20240110_21H:26M_danish_pastry.png,2024-01-10,21:26:46,danish pastry,1,10.0,40.0,4.5,0.6000000000000001,2.2,1.8,0.2,30.0,Breakfast,,
+,,,,,,,10.0,5.0,20240110_21H:28M_lasagna.png,2024-01-10,21:28:56,lasagna,1,250.0,350.0,35.0,20.0,15.0,5.0,3.0,50.0,,,
+,,,,,,,8.622,7.191000000000001,"20240110_22H:23M_Biscuits,_cookies,_chocolate_chip,_American_style.png",2024-01-10,22:23:54,"Biscuits, cookies, chocolate chip, American style",1,90.0,396.0,54.54,4.680000000000001,34.983000000000004,36.45,2.25,0.0,Breakfast,,
+,,,,,,,0.0028,0.0016,"20240110_22H:48M_Apples,_cooking,_baked_with_sugar,_flesh_only.png",2024-01-10,22:48:25,"Apples, cooking, baked with sugar, flesh only",1,4.0,2.76,0.684,0.008,0.0204,0.684,0.076,0.0,Breakfast,,
+,,,,,,,1.754,0.767,"20240110_22H:51M_Cheese_straws/twists,_retail.png",2024-01-10,22:51:24,"Cheese straws/twists, retail",1,10.0,51.0,4.83,1.41,5.551000000000001,0.16,0.25,0.0,Breakfast,,
+,,,,,,,0.3224,2.9159,"20240110_23H:02M_Potato_crisps,_fried_in_sunflower_oil.png",2024-01-10,23:02:34,"Potato crisps, fried in sunflower oil",1,13.0,64.09,7.254,0.806,6.9823,0.117,0.5720000000000001,0.0,Other,,
+,,,,,,,7.0,3.0,20240110_23H:12M_Potato_Gratin_(or_similar_layered_potato_dish).png,2024-01-10,23:12:35,Potato Gratin (or similar layered potato dish),1,200.0,222.0,21.0,5.0,10.0,1.0,2.0,24.0,,"```json
+{
+    ""name item"": ""Potato Gratin (or similar layered potato dish)"",
+    ""grams in picture"": 200,
+    ""total calories (kcal)"": 222,
+    ""carbohydrates (g)"": 21,
+    ""of which sugar (g)"": 1.5,
+    ""fiber (g)"": 2,
+    ""protein (g)"": 5,
+    ""saturated fat (g)"": 7,
+    ""unsaturated fat (g)"": 3,
+    ""cholesterol (mg)"": 24,
+    ""glycemic index (GI)"": 60
+}
+```",
+,,,,,,,6.0,5.0,20240110_23H:13M_lasagna.png,2024-01-10,23:13:46,lasagna,1,200.0,300.0,35.0,15.0,11.0,5.0,3.0,40.0,,"```json
+{
+  ""name item"": ""lasagna"",
+  ""grams in picture"": 200,
+  ""total calories (kcal)"": 300,
+  ""carbohydrates (g)"": 35,
+  ""of which sugar (g)"": 5,
+  ""fiber (g)"": 3,
+  ""protein (g)"": 15,
+  ""saturated fat (g)"": 6,
+  ""unsaturated fat (g)"": 5,
+  ""cholesterol (mg)"": 40,
+  ""glycemic index (GI)"": 30
+}
+```
+
+Please note that these values are estimates and may not be accurate for the specific lasagna in the picture. Nutritional values can greatly vary based on the recipe and the size of the serving. The glycemic index also may vary based on the specific ingredients used.",200.0
+,,,,,,,6.0,6.0,20240110_23H:14M_vegetable_lasagna.png,2024-01-10,23:14:43,vegetable lasagna,1,400.0,480.0,58.0,18.0,12.0,8.0,6.0,30.0,,"```json
+{
+    ""name item"": ""vegetable lasagna"",
+    ""grams in picture"": 400,
+    ""total calories (kcal)"": 480, 
+    ""carbohydrates (g)"": 58, 
+    ""of which sugar (g)"": 8,
+    ""fiber (g)"": 6,
+    ""protein (g)"": 18, 
+    ""saturated fat (g)"": 6,
+    ""unsaturated fat (g)"": 6,
+    ""cholesterol (mg)"": 30,
+    ""glycemic index (GI)"": 60
+}
+```
+Please note the nutritional values given are estimations. The actual values can vary based on the specific recipe, ingredients used, and the portion size. The glycemic index (GI) value provided is a general estimate for lasagna with a vegetable filling and is not precise. The estimates are best efforts based on standard nutritional data for similar dishes.",400.0
+,,,,,,,9.0,8.0,20240110_23H:14M_Lasagna_slice.png,2024-01-10,23:14:52,Lasagna slice,1,200.0,400.0,35.0,20.0,17.0,5.0,3.0,60.0,,"The image shows what appears to be a slice of lasagna. Let's estimate its nutritional values based on general data for a standard serving size of lasagna. The values I provide will be estimations as it's not possible to accurately gauge the specific recipe or serving size from the image. Here's the nutritional data according to the estimated serving size:
+
+```json
+{
+  ""name item"": ""Lasagna slice"",
+  ""grams in picture"": 200,
+  ""total calories (kcal)"": 400, 
+  ""carbohydrates (g)"": 35, 
+  ""of which sugar (g)"": 5,
+  ""fiber (g)"": 3,
+  ""protein (g)"": 20, 
+  ""saturated fat (g)"": 9,
+  ""unsaturated fat (g)"": 8,
+  ""cholesterol (mg)"": 60,
+  ""glycemic index (GI)"": 55
+}
+```
+
+Please note that these values can greatly vary based on the specific ingredients and amounts used in the lasagna. This estimation is based on a generic recipe.",200.0
+,,,,,,,10.0,8.0,20240110_23H:15M_Lasagna.png,2024-01-10,23:15:15,Lasagna,1,400.0,560.0,60.0,30.0,18.0,12.0,7.0,100.0,,"```json
+{
+  ""name item"": ""Lasagna"",
+  ""grams in picture"": 400,
+  ""total calories (kcal)"": 560, 
+  ""carbohydrates (g)"": 60, 
+  ""of which sugar (g)"": 12,
+  ""fiber (g)"": 7,
+  ""protein (g)"": 30, 
+  ""saturated fat (g)"": 10,
+  ""unsaturated fat (g)"": 8,
+  ""cholesterol (mg)"": 100,
+  ""glycemic index (GI)"": 60
+}
+```
+
+Please note that the above values are rough estimates, as exact nutritional information can vary widely based on the specific recipe and the size of the serving. Also, the glycemic index (GI) can vary based on the specific type of pasta, cheese, and other ingredients used. The numbers presented here are typical values for a general serving of lasagna but may not be accurate for the specific dish in the picture.",400.0
+,,,,,,,10.0,3.0,20240110_23H:15M_Potato_Gratin.png,2024-01-10,23:15:22,Potato Gratin,1,200.0,400.0,30.0,10.0,13.0,2.0,3.0,50.0,,"The image features what appears to be a serving of potato gratin or a similar potato-based dish on a plate with a fork on the side. Let's estimate the serving size and nutritional values. However, please note that these values are rough estimates since exact measurements cannot be determined from an image and the recipe or ingredients used can vary widely. Here's the estimated nutritional information in JSON format:
+
+```json
+{
+  ""name item"": ""Potato Gratin"",
+  ""grams in picture"": 200,
+  ""total calories (kcal)"": 400,
+  ""carbohydrates (g)"": 30,
+  ""of which sugar (g)"": 2,
+  ""fiber (g)"": 3,
+  ""protein (g)"": 10,
+  ""saturated fat (g)"": 10,
+  ""unsaturated fat (g)"": 3,
+  ""cholesterol (mg)"": 50,
+  ""glycemic index (GI)"": 60
+}
+```
+
+Please remember that these values are only approximations and could vary significantly depending on the specific recipe and portion size.",200.0
+,,,,,,,5.0,5.0,20240110_23H:38M_Healthy_Lasagna.png,2024-01-10,23:38:48,Healthy Lasagna,1,200.0,350.0,35.0,20.0,10.0,6.0,5.0,30.0,,"To estimate the nutritional value of the serving of healthy lasagna shown in the picture, we would need to make some assumptions. The actual nutritional values can vary widely depending on the specific ingredients and portion size. However, for a basic estimate, let's assume we are dealing with a vegetable lasagna with reduced-fat cheese and whole wheat pasta layers. Here's an approximate nutritional profile for a standard piece of such lasagna, which might be around 200 grams:
+
+```json
+{
+  ""name item"": ""Healthy Lasagna"",
+  ""grams in picture"": 200,
+  ""total calories (kcal)"": 350,
+  ""carbohydrates (g)"": 35,
+  ""of which sugar (g)"": 6,
+  ""fiber (g)"": 5,
+  ""protein (g)"": 20, 
+  ""saturated fat (g)"": 5,
+  ""unsaturated fat (g)"": 5,
+  ""cholesterol (mg)"": 30,
+  ""glycemic index (GI)"": 50
+}
+```
+
+Please note that these values are rough estimates. The actual values may differ depending on the precise recipe and ingredients used. The glycemic index represents an average value for a dish made with whole grains and fiber-rich vegetables, which generally have a lower GI than refined grains and starches.",200.0
+,,,,,,,10.0,5.0,20240110_23H:40M_lasagna.png,2024-01-10,23:40:14,lasagna,1,250.0,350.0,35.0,20.0,15.0,5.0,3.0,0.0,,"```json
+{
+  ""name item"": ""lasagna"",
+  ""grams in picture"": 250,
+  ""total calories (kcal)"": 350,
+  ""carbohydrates (g)"": 35,
+  ""of which sugar (g)"": 5,
+  ""fiber (g)"": 3,
+  ""protein (g)"": 20,
+  ""saturated fat (g)"": 10,
+  ""unsaturated fat (g)"": 5,
+  ""cholesterol (g)"": 0.1,
+  ""glycemic index (GI)"": 60
+}
+```
+
+Please note that the provided values are rough estimates and actual nutritional values can vary based on the specific recipe and serving size. The glycemic index can also vary depending on the specific types of ingredients used and how the food is prepared.",250.0
+,,,,,,,7.0,5.0,20240110_23H:40M_Lasagna.png,2024-01-10,23:40:28,Lasagna,1,250.0,350.0,35.0,20.0,12.0,5.0,3.0,50.0,,"Certainly! We have what looks like a lasagna serving on a white plate. Please keep in mind that the values I provide are estimates, as the exact ingredients and preparation method will influence the nutritional content.
+
+```json
+{
+  ""name item"": ""Lasagna"",
+  ""grams in picture"": 250,
+  ""total calories (kcal)"": 350,
+  ""carbohydrates (g)"": 35,
+  ""of which sugar (g)"": 5,
+  ""fiber (g)"": 3,
+  ""protein (g)"": 20,
+  ""saturated fat (g)"": 7,
+  ""unsaturated fat (g)"": 5,
+  ""cholesterol (mg)"": 50,
+  ""glycemic index (GI)"": 60
+}
+```
+
+Remember that these numbers are estimates and can vary widely based on the specific ingredients used (like type and amount of cheese, meat, sauce, etc.), portion size, and recipe. The actual glycemic index (GI) could range depending on the type of pasta and the amount of fat and fiber in the recipe, which slow digestion and lower the GI.",250.0
+,,,,,,,13.0,10.0,20240110_23H:41M_Lasagna.png,2024-01-10,23:41:58,Lasagna,1,400.0,560.0,53.0,29.0,23.0,8.0,4.0,80.0,,"Unfortunately, I am not able to provide specific details about the nutritional content of the food shown in the image, but I can offer an estimation based on typical values for a portion of lasagna of approximately 400 grams. Please note that the actual values can vary widely depending on the specific recipe and ingredients used.
+
+```json
+{
+    ""name item"": ""Lasagna"",
+    ""grams in picture"": 400,
+    ""total calories (kcal)"": 560,
+    ""carbohydrates (g)"": 53,
+    ""of which sugar (g)"": 8,
+    ""fiber (g)"": 4,
+    ""protein (g)"": 29, 
+    ""saturated fat (g)"": 13,
+    ""unsaturated fat (g)"": 10,
+    ""cholesterol (mg)"": 80,
+    ""glycemic index (GI)"": 60
+}
+```
+Keep in mind that these values are estimated and actual nutritional content can differ. The glycemic index can also vary depending on specific ingredients and how the lasagna is prepared. The nutritional information of commercially prepared or restaurant-served lasagna can be obtained from the producer or provider for more accuracy.",400.0
+,,,,,,,12.0,10.0,20240110_23H:43M_Lasagna.png,2024-01-10,23:43:26,Lasagna,1,400.0,600.0,50.0,30.0,22.0,8.0,4.0,0.0,,"```json
+{
+  ""name item"": ""Lasagna"",
+  ""grams in picture"": 400,
+  ""total calories (kcal)"": 600,
+  ""carbohydrates (g)"": 50,
+  ""of which sugar (g)"": 8,
+  ""fiber (g)"": 4,
+  ""protein (g)"": 30,
+  ""saturated fat (g)"": 12,
+  ""unsaturated fat (g)"": 10,
+  ""cholesterol (g)"": 0.12,
+  ""glycemic index (GI)"": 60
+}
+```",400.0
+,,,,,,,6.0,5.0,20240110_23H:43M_lasagna.png,2024-01-10,23:43:33,lasagna,1,250.0,350.0,35.0,22.0,11.0,5.0,3.0,40.0,,"```json
+{
+  ""name item"": ""lasagna"",
+  ""grams in picture"": 250,
+  ""total calories (kcal)"": 350,
+  ""carbohydrates (g)"": 35,
+  ""of which sugar (g)"": 5,
+  ""fiber (g)"": 3,
+  ""protein (g)"": 22,
+  ""saturated fat (g)"": 6,
+  ""unsaturated fat (g)"": 5,
+  ""cholesterol (mg)"": 40,
+  ""glycemic index (GI)"": 55
+}
+```
+
+Please note that the amounts provided are estimations based on a standard serving size of lasagna and could vary significantly based on the specific ingredients and recipe used. For precise nutritional values, consulting a nutritional database or information provided by the manufacturer (if commercially prepared) would be necessary.",250.0
+,,,,,,,0.09,0.05,20240111_08H:28M_Lasagna.png,2024-01-11,08:28:48,Lasagna,1,2.0,3.5,0.28,0.2,0.14,0.04,0.025,120.0,Dinner,"To estimate the nutritional values of this 400g serving of lasagna, I'll base the assumptions on average values for a typical meat lasagna. The nutritional values can vary widely based on the specific ingredients and recipe used. However, I'll provide an approximate estimate for the nutritional content of this serving:
+
+```json
+{
+  ""name item"": ""Lasagna"",
+  ""grams in picture"": 400,
+  ""total calories (kcal)"": 700,
+  ""carbohydrates (g)"": 56,
+  ""of which sugar (g)"": 8,
+  ""fiber (g)"": 5,
+  ""protein (g)"": 40,
+  ""saturated fat (g)"": 18,
+  ""unsaturated fat (g)"": 10,
+  ""cholesterol (mg)"": 120,
+  ""glycemic index (GI)"": 60
+}
+```
+
+Please note that these values are estimations and can vary. For specific dietary planning, always refer to the nutritional information of the actual ingredients used in the specific recipe.",400.0
+,,,,,,,6.0,5.0,20240111_22H:50M_Pepperoni_pizza.png,2024-01-11,22:50:54,Pepperoni pizza,1,150.0,360.0,40.0,16.0,11.0,4.0,2.0,60.0,Lunch,"```json
+{
+  ""name item"": ""Pepperoni pizza"",
+  ""grams in picture"": 300,
+  ""total calories (kcal)"": 720,
+  ""carbohydrates (g)"": 80,
+  ""of which sugar (g)"": 8,
+  ""fiber (g)"": 4,
+  ""protein (g)"": 32,
+  ""saturated fat (g)"": 12,
+  ""unsaturated fat (g)"": 10,
+  ""cholesterol (mg)"": 60,
+  ""glycemic index (GI)"": 30
+}
+```
+
+Please note that the values provided are approximate and can vary widely based on the specific recipe used by the pizzeria, the size of the pizza, and the thickness of the crust. The serving size is estimated to be around two medium slices (or 1/4th of the pizza displayed in the picture, which appears to be a medium-sized pizza). The glycemic index (GI) value provided is an estimate for general pizza; the actual GI can vary. For more accurate nutritional information, consulting a nutritionist or using specific food databases with detailed information on the particular pizza brand or recipe would be necessary.",30.0

@@ -12,9 +12,9 @@ def preprocess_and_load_json(response_text):
 
     # Find all matches of key-value pairs in JSON format
     key_value_pairs = re.findall(r'"([^"]+)"\s*:\s*("[^"]+"|\d+|\d+\.\d+)', json_section)
-    print('json_section',json_section)
     # Build a dictionary from these key-value pairs
     json_data = {}
+    json_data['llm_output'] = response_text
     for key, value in key_value_pairs:
         # # Convert numeric values from strings to numbers
         # if value.replace('.', '', 1).isdigit():
@@ -23,7 +23,6 @@ def preprocess_and_load_json(response_text):
         #     value = value.strip('"')
 
         json_data[key] = value
-    print(json_data)
     return json_data
 
 def convert_to_grams(json_data):
@@ -40,20 +39,24 @@ def convert_to_grams(json_data):
             if converted_value:  # Only add if the nested dictionary is not empty
                 converted_data[key] = converted_value
         elif isinstance(value, str):
-            # Extract the numerical part of the value
-            try:
-                num = float(''.join(filter(lambda x: x.isdigit() or x == '.', value)))
-                # Check the unit and convert if necessary
-                if 'mg' in value.lower():
-                    num /= 1000  # Convert from mg to g
-                elif any(μg_indicator in value.lower() for μg_indicator in ['μg', 'mcg', 'ug']):
-                    num /= 1e6  # Convert from μg to g
-                # Add the key-value pair to the converted data
-                converted_data[key] = num
-            except ValueError:
-                # Discard the key-value pair if the conversion is not possible
-                pass
-    print('convert to grams output:', converted_data)
+
+            # if the key is the file name we save the string, otherwise we convert to float.
+            if ("name" in key) or ('llm_output' in key):
+                converted_data[key] = value
+            else:
+                # Extract the numerical part of the value
+                try:
+                    num = float(''.join(filter(lambda x: x.isdigit() or x == '.', value)))
+                    # Check the unit and convert if necessary
+                    if 'mg' in value.lower():
+                        num /= 1000  # Convert from mg to g
+                    elif any(μg_indicator in value.lower() for μg_indicator in ['μg', 'mcg', 'ug']):
+                        num /= 1e6  # Convert from μg to g
+                    # Add the key-value pair to the converted data
+                    converted_data[key] = num
+                except ValueError:
+                    # Discard the key-value pair if the conversion is not possible
+                    pass
 
     return converted_data
       
@@ -71,11 +74,13 @@ def extract_nutrition(json_data):
     cholesterol_pattern = re.compile(r'\b(cholesterol)\b', re.IGNORECASE)
     calorie_pattern = re.compile(r'\b(calories|kcal)\b', re.IGNORECASE)
     weight_pattern = re.compile(r'\b(weight|grams of|portion size|serving size|grams in)\b', re.IGNORECASE)
+    glycemic_index_pattern = re.compile(r'\b(glycemic|GI)\b', re.IGNORECASE)
+    name_pattern = re.compile(r'\b(name|product|file)\b', re.IGNORECASE)
 
     # Initialize values
     nutrients = {
-        'weight': 0, 'calories': 0, 'carbohydrates': 0, 'protein': 0, 'fat': 0, 'saturated fat': 0, 
-        'unsaturated fat': 0, 'sugar': 0, 'fiber': 0, 'cholesterol': 0
+        'name':'','weight': 0, 'calories': 0, 'carbohydrates': 0, 'protein': 0, 'fat': 0, 'saturated fat': 0, 
+        'unsaturated fat': 0, 'sugar': 0, 'fiber': 0, 'cholesterol': 0, 'GI': 0
     }
 
     # Search and aggregate values
@@ -100,8 +105,14 @@ def extract_nutrition(json_data):
             nutrients['calories'] += value
         if weight_pattern.search(key):
             nutrients['weight'] += value
+            print('weight', value)
+        if glycemic_index_pattern.search(key):
+            nutrients['GI'] += value
+        if "name" in key:
+            nutrients['name'] = value
+        if "llm_output" in key:
+            nutrients['llm_output'] = value
 
-    print('in extract_nutrition function we output:', nutrients)
 
     return nutrients
 
