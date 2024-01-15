@@ -21,6 +21,7 @@ import json
 
 
 
+
 from functions.nutrition_processing import *
 from functions.openai_api_calls import * 
 from functions.nutrition_plots import *
@@ -198,7 +199,7 @@ def nutrition_page():
 
                 # Placeholder for Nutritional Values
                 html.Div(id='dynamic-nutritional-values')
-            ], style={'height': '300px', 'border': '1px solid #ddd', 'borderRadius': '5px', 'padding': '10px'}),
+            ], style={'height': '650px', 'border': '1px solid #ddd', 'borderRadius': '5px', 'padding': '10px'}),
 
 
 
@@ -274,7 +275,6 @@ def register_callbacks_nutrition(app):
     )
     def update_dropdown_options(search_value):
         """ search for typed term """
-        print('SEARCH VALUE IS :', search_value)
         if search_value:
             # Filter the dataframe for matching food names
             filtered_df = df_database[df_database['Food Name'].str.contains(search_value, case=False, na=False)]
@@ -365,7 +365,14 @@ def register_callbacks_nutrition(app):
         State('ai-toggle', 'n_clicks')]
     )
     def store_json_from_image(n_clicks, n_clicks_row, stored_image_data, input_text, ai_toggle_clicks):
-
+        """
+        ___________               .___
+        \_   _____/___   ____   __| _/
+        |    __)/  _ \ /  _ \ / __ | 
+        |     \(  <_> |  <_> ) /_/ | 
+        \___  / \____/ \____/\____ | 
+            \/                    \/ 
+        """
         ctx = dash.callback_context
         triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
@@ -385,95 +392,46 @@ def register_callbacks_nutrition(app):
             selected_name = json.loads(selected_id)['index']
             selected_row = df_database[df_database['Food Name'] == selected_name] #.iloc[0].to_dict()
 
-
-            # # Search for the input text in the dataframe
-            # if not selected_row.empty:                # Process the match to get nutritional values
-            #     # try:
-            #     today_str = datetime.now().strftime('%Y%m%d_%HH:%MM')
-
-            #     match = selected_row.iloc[0]
-            #     json_entry = {
-            #         'protein': match['Protein (g)'],
-            #         'fat': match['Fat (g)'],
-            #         'carbohydrates': match['Carbohydrate (g)'],
-            #         'sugar (g)': match['Total sugars (g)'],
-            #         'fiber (g)': match['AOAC fibre (g)'],
-            #         'calories': match['Energy (kcal) (kcal)'],
-            #         'weight': '100',
-            #         'saturated fat': match['Satd FA /100g fd (g)'],
-            #         'unsaturated fat': match['Mono FA /100g food (g)'], #+ float(match['Poly FA /100g food (g)']),
-            #         'name':  match['Food Name'],
-            #     }
-            json_entry = search_item_database(selected_row)
-            json_grams = convert_to_grams(json_entry)
-            json_nutrition_std = extract_nutrition(json_grams)
-
-            message = "No matches found " if 'message' in json_nutrition_std else 'Nutritional data from database'
-            return json_nutrition_std, dash.no_update, message
+            json_data = search_item_database(selected_row)
+            message = "No matches found " if 'message' in json_data else 'Nutritional data from database'
 
         else:
 
             if stored_image_data is None:
                 raise PreventUpdate
-            else:
-                pass
-                # print('image_data', stored_image_data[0:100])
-
-
-            print('Button clicked. Running function to start calling OpenAI API.', input_text)
 
             # Call the OpenAI API with the image and input text
             response_text = openai_vision_call(stored_image_data, textprompt=input_text)
-            response_text = '```json\n{\n  "name item": "raisin pastry",\n  "grams in picture": 100,\n  "total calories (kcal)": 290, \n  "carbohydrates (g)": 45, \n  "of which sugar (g)": 12,\n  "fiber (g)": 2,\n  "protein (g)": 6, \n  "saturated fat (g)": 6,\n  "unsaturated fat (g)": 4,\n  "cholesterol (g)": 0.1\n}\n```'
-            
+            # response_text = """
+            # '```json\n{\n  "name item": "Oatmeal with banana and mixed nuts",\n  "grams in picture": 250,\n  "total calories (kcal)": 350,\n  "carbohydrates (g)": 50,\n  "of which sugar (g)": 10,\n  "fiber (g)": 6,\n  "protein (g)": 12,\n  "total fat": 10,\n  "saturated fat (g)": 2,\n  "unsaturated fat (g)": 6,\n  "cholesterol (mg)": 0,\n  "glycemic index (GI)": 55\n}\n``` \n\nPlease note that the nutritional values provided are estimates based on the appearance of the food in the image. The actual values may vary depending on specific ingredients used, their quantities, and how the food was prepared.
+            # """
+
             json_data = preprocess_and_load_json(response_text)
+            message = response_text.split('```')[0]
+        # ensure all values are values
+        json_grams = convert_to_grams(json_data)
+        # extract nutritional data in standardised format
+        json_nutrition_std = extract_nutrition(json_grams)
+        
+        # also add amino acids please:
+        if (ai_toggle_clicks % 2 == 1):
+            response_text = openai_vision_call(stored_image_data, 
+                                               textprompt=json_nutrition_std['protein'], 
+                                               prompt_type='amino_acids')
             # ensure all values are values
+
+            # response_text = """
+            # '\n                {\n    "essential amino acids": {\n        "histidine": 280, \n        "isoleucine": 440, \n        "leucine": 770, \n        "lysine": 610, \n        "methionine": 220, \n        "phenylalanine": 500, \n        "threonine": 390, \n        "tryptophan": 110, \n        "valine": 500\n    },\n    "non essential amino acids": {\n        "alanine": 400, \n        "arginine": 410, \n        "asparagine": "", \n        "aspartic acid": 660, \n        "cysteine": 110, \n        "glutamic acid": 1470, \n        "glutamine": "", \n        "glycine": 280, \n        "proline": 440, \n        "serine": 460, \n        "tyrosine": 290\n    }\n} \n\nPlease note that the above values are rough estimates as amino acid content can vary based on the specific food item\'s exact composition and preparation method. The values provided are given in milligrams and are estimated based on the assumption that there is 11g of protein in the food item shown (which appears to be oatmeal with some toppings, likely nuts or fruit). The amino acid profile of oats and other possible ingredients such as nuts or fruits would contribute to the overall amino acid composition. Asparagine and glutamine are typically not quantified separately in food amino acid analysis due to their conversion to aspartic acid and glutamic acid, respectively, during acid hydrolysis; hence, they are left blank in this estimation\n            
+            # """
+            json_data = preprocess_and_load_json(response_text)
+
             json_grams = convert_to_grams(json_data)
-            json_nutrition_std = extract_nutrition(json_grams)
+            # extract nutritional data in standardised format
+            json_nutrition_amino_acids = extract_nutrition(json_grams)
+            json_nutrition_std.update(json_nutrition_amino_acids)
 
-        # try: 
-        #     # now save the csv
-        #     filename = 'data/nutrition_entries.csv'
-        #     now = datetime.now()
+        return json_nutrition_std,  dash.no_update, message
 
-        #     # Convert JSON to DataFrame
-        #     df_new = pd.DataFrame([json_nutrition_std])
-        #     df_new['date'] = now.date()
-        #     df_new['time'] = now.strftime("%H:%M:%S")
-        #     if json_data and 'name item' in json_data:
-        #         df_new['name'] = json_data['name item'].replace('"', '').replace("'", "")
-        #     else:
-        #         df_new['name'] = 'template'
-        #     today_str = datetime.now().strftime('%Y%m%d_%HH:%MM')
-        #     df_new['file_name'] = f"{today_str}_{df_new['name'].loc[0].replace(' ', '_')}.png"
-        #     df_new['units'] = 1
-
-        #     # Read existing data or create new file
-        #     try:
-        #         df = pd.read_csv(filename)
-
-        #         # Check each key in JSON data
-        #         for key in df_new.columns:
-        #             if key not in df.columns:
-        #                 df[key] = None  # Add new column for unmatched keys
-
-        #         # Concatenate and reorder columns to match
-        #         df = pd.concat([df, df_new], axis=0, sort=False).reindex(columns=df.columns)
-        #     except FileNotFoundError:
-        #         df = df_new
-
-        #     # Save updated data
-        #     df.to_csv(filename, index=False)
-
-            # # store image too
-            # # Check if json_nutrition_std is not empty and save the image
-            # save_image(stored_image_data, df_new['name'].iloc[0])
-
-        return json_nutrition_std, dash.no_update, response_text.split('```')[0]
-        # except:
-        #     print('not updating the list with todays entries.')
-        #     return json_nutrition_std, {'timestamp': datetime.now().isoformat()}, response_text.split('```')[0]
-    
 
 
     
@@ -484,6 +442,7 @@ def register_callbacks_nutrition(app):
         [State('item-submission-state', 'data')]
     )
     def update_submission_state(n_clicks_submit, n_clicks_add, data):
+        """ Check if the submit button is pressed for current item. We will revert it back after 'Add' """
         ctx = dash.callback_context
         if not ctx.triggered:
             return data
@@ -503,44 +462,58 @@ def register_callbacks_nutrition(app):
         [Input('nutritional-json-from-image', 'data'),
         Input('update-nutrition-values', 'n_clicks'),
         Input('add-to-csv-button', 'n_clicks'),
-        Input('item-submission-state', 'data')],  # Add the submit button as an Input
+        Input('submit-nutrition-data', 'n_clicks'),  # Changed from 'item-submission-state' to 'submit-nutrition-data'
+        Input('item-submission-state', 'data')],
         [State('weight-input', 'value'),
         State('meal-dropdown', 'value')]
     )
-    def update_nutritional_values(json_entry, n_clicks_update, n_clicks_submit, submission_state, weight_input, meal_type):
-        # has the item been submitted? then we allow editting
-
+    def update_nutritional_values(json_entry, n_clicks_update, n_clicks_submit, n_clicks, submission_state, weight_input, meal_type):
         ctx = dash.callback_context
-
 
         if not json_entry:
             return "No nutritional data available", 100  # Default weight if no data
 
-        
-        # add meal type
+        # Add meal type
         json_entry['meal_type'] = meal_type
+
         # Determine which input triggered the callback
         trigger = ctx.triggered[0]['prop_id']
-        # Set default weight from json_entry if new data received
-        if trigger == 'nutritional-json-from-image.data':
-            default_weight = json_entry.get('weight', 100)
-            weight_input = default_weight  # Update the weight_input to default_weight
-        # Check if weight input is valid
-        if weight_input is None or weight_input == dash.no_update:
-            # Return without updating values if weight input is invalid
-            return dash.no_update, dash.no_update
-        # Ensure the denominator is not zero
-        default_weight = json_entry.get('weight', 100)
-        
-        if default_weight == 0:
-            default_weight = 100  # Fallback to 100 to avoid division by zero
+
+
+        # Extract the weight from json_entry, use default if not present or zero
+        json_weight = json_entry.get('weight', 100)
+        if json_weight == 0:
+            json_weight = 100
+        default_weight = json_weight
+
+        # Update weight_input to json_entry weight when submit-nutrition-data button is clicked
+        if 'submit-nutrition-data.n_clicks' in trigger:
+            weight_input = json_weight
+            default_weight = json_weight
+        elif weight_input is None or weight_input == dash.no_update:
+            # Maintain the existing weight_input value for other triggers
+            weight_input = json_weight
+            default_weight = json_weight
+
 
         # Adjust the values based on the input weight
         factor = weight_input / default_weight
 
+
         # adapt the weight of these items.
+        essential_amino_acids = [
+            "histidine",
+            "isoleucine",
+            "leucine",
+            "lysine",
+            "methionine",
+            "phenylalanine",
+            "threonine",
+            "tryptophan",
+            "valine"
+        ]
         columns_to_adjust = ['calories','carbohydrates','protein','fat',
-                             'fiber','sugar','unsaturated fat','saturated fat','weight']
+                             'fiber','sugar','unsaturated fat','saturated fat','weight','valine'] + essential_amino_acids
         for entry in columns_to_adjust:
             if entry in json_entry:
                 json_entry[entry] = json_entry[entry]*factor
@@ -549,17 +522,15 @@ def register_callbacks_nutrition(app):
 
         # Check if the submit button was clicked
         if 'add-to-csv-button.n_clicks' in trigger:
-            print('ADD button')
             # Logic to save data
             # You can call a function here to save the data
             # Check if there is nutritional data to add
             if json_entry is None or not json_entry:
                 return "No nutritional data to add."
 
-            # print('json_nutrition_std', json_nutrition_std)
-
             # now save the csv
             filename = 'data/nutrition_entries.csv'
+            filename = '/Users/jasperhajonides/Documents/Projects/website/dash_health_app/data/nutrition_entries.csv'
             now = datetime.now()
 
             # Convert JSON to DataFrame
@@ -584,10 +555,11 @@ def register_callbacks_nutrition(app):
                         df[key] = None  # Add new column for unmatched keys
 
                 # Concatenate and reorder columns to match
-                df = pd.concat([df, df_new], axis=0, sort=False).reindex(columns=df.columns)
+                df = pd.concat([df, df_new], axis=0, ignore_index=True, sort=False)
             except FileNotFoundError:
                 df = df_new
 
+            print('DF BEFORE SAVE', df)
             # Save updated data
             df.to_csv(filename, index=False)
 
@@ -595,69 +567,18 @@ def register_callbacks_nutrition(app):
 
         # Default to 'Other' if no meal type is selected
         meal_type = meal_type if meal_type else 'Other'
-        print(json_entry)
         if not submission_state['submitted']:
             return dash.no_update, dash.no_update
         
         # Check if the submit-nutrition-data button was clicked
         # if ('submit-nutrition-data.n_clicks' in trigger): # or ('update-nutrition-values.n_clicks' in trigger): #or ('add-to-csv-button.n_clicks' in trigger) or submitted_current_item:
             # Call collate_current_item function
-        print('SHOW THE DATA PLEASE')
+        
+        if ('protein' not in json_entry) and ('valine' not in json_entry):
+            return dash.no_update, dash.no_update
+
         current_item_layout = collate_current_item(json_entry, weight_input, meal_type)
         return current_item_layout, weight_input
-
-
-
-    # @app.callback(
-    #     Output('add-status', 'children'),
-    #     [Input('add-to-csv-button', 'n_clicks')],
-    #     [State('nutritional-json-from-image', 'data'),
-    #     State('upload-image', 'contents')]
-    # )
-    # def add_nutritional_data_to_csv(n_clicks, json_nutrition_std, image_contents):
-    #     if n_clicks is None:
-    #         raise PreventUpdate
-
-    #     # Check if there is nutritional data to add
-    #     if json_nutrition_std is None or not json_nutrition_std:
-    #         return "No nutritional data to add."
-
-    #     # print('json_nutrition_std', json_nutrition_std)
-
-    #     # now save the csv
-    #     filename = 'data/nutrition_entries.csv'
-    #     now = datetime.now()
-
-    #     # Convert JSON to DataFrame
-    #     df_new = pd.DataFrame([json_nutrition_std])
-    #     df_new['date'] = now.date()
-    #     df_new['time'] = now.strftime("%H:%M:%S")
-    #     if json_nutrition_std and 'name' in json_nutrition_std:
-    #         df_new['name'] = json_nutrition_std['name'].replace('"', '').replace("'", "")
-    #     else:
-    #         df_new['name'] = 'template'
-    #     today_str = datetime.now().strftime('%Y%m%d_%HH:%MM')
-    #     df_new['file_name'] = f"{today_str}_{df_new['name'].loc[0].replace(' ', '_')}.png"
-    #     df_new['units'] = 1
-
-    #     # Read existing data or create new file
-    #     try:
-    #         df = pd.read_csv(filename)
-
-    #         # Check each key in JSON data
-    #         for key in df_new.columns:
-    #             if key not in df.columns:
-    #                 df[key] = None  # Add new column for unmatched keys
-
-    #         # Concatenate and reorder columns to match
-    #         df = pd.concat([df, df_new], axis=0, sort=False).reindex(columns=df.columns)
-    #     except FileNotFoundError:
-    #         df = df_new
-
-    #     # Save updated data
-    #     df.to_csv(filename, index=False)
-
-    #     return "Nutritional data added successfully."
 
 
     @app.callback(
@@ -685,21 +606,29 @@ def register_callbacks_nutrition(app):
         
 
 
+    # Function to process the image
     @app.callback(
         [Output('display-image', 'children'),
         Output('display-image', 'style'),
-        Output('stored-image', 'data')],  # Add an output to store the base64 image data
+        Output('stored-image', 'data')],
         [Input('upload-image', 'contents')],
         prevent_initial_call=True
     )
     def process_image(image_contents):
         if image_contents is not None:
-            image_data = parse_contents(image_contents[0])
-            processed_image_data = resize_and_crop_image(image_data)
+            # Extract the content type (image format) and image data
+            header, encoded = image_contents[0].split(",", 1)
+            image_format = re.search(r'data:image/(.*);base64', header).group(1)
 
-            # Convert to base64 for displaying and storing
+            if 'heic' in image_format.lower():
+                image_format = 'heic'
+
+            image_data = base64.b64decode(encoded)
+            processed_image_data = resize_and_crop_image(image_data, image_format)
+
+            # Convert the processed image data back to base64 for displaying and storing
             base64_image = base64.b64encode(processed_image_data).decode()
-            src_str = f"data:image/jpeg;base64,{base64_image}"
+            src_str = f"data:image/{image_format};base64,{base64_image}"
 
             image_style = {
                 'width': '256px',
@@ -712,8 +641,8 @@ def register_callbacks_nutrition(app):
             return html.Img(src=src_str, style={'max-width': '100%', 'height': 'auto'}), image_style, base64_image
 
         # No image uploaded
-        return "No image uploaded", {'display': 'none'}, None  # Also return None for the stored data
-    
+        return "No image uploaded", {'display': 'none'}, None
+
 
 
 
@@ -787,55 +716,48 @@ def register_callbacks_nutrition(app):
             Input({'type': 'unit-increase', 'index': ALL}, 'n_clicks'),
             Input({'type': 'unit-decrease', 'index': ALL}, 'n_clicks'),
             Input('update-trigger', 'data'),
-            Input('selected-date', 'date')
+            Input('selected-date', 'date'),
+            Input('add-to-csv-button', 'n_clicks')
         ],
     )
-    def update_entries(submit_clicks, refresh_clicks, delete_clicks, increase_clicks, decrease_clicks, update_trigger, selected_date_str):
+    def update_entries(submit_clicks, refresh_clicks, delete_clicks, increase_clicks, decrease_clicks, update_trigger, selected_date_str, add_clicks):
         ctx = dash.callback_context
         trigger_id = ctx.triggered[0]['prop_id'] if ctx.triggered else None
 
-
-        if trigger_id is None:
-            raise dash.exceptions.PreventUpdate
-
-
+        # Always read the CSV file when the callback is triggered
         filename = 'data/nutrition_entries.csv'
         try:
             df = pd.read_csv(filename)
-            # Initialize 'units' column if it doesn't exist
             if 'units' not in df.columns:
                 df['units'] = 1
             else:
-                # Set 'units' to 1 for rows where it is NaN or non-existent
                 df['units'] = df['units'].fillna(1).apply(lambda x: 1 if pd.isna(x) or x <= 0 else x)
         except FileNotFoundError:
             return "No entries found."
         
-        # Handling delete, increase, and decrease actions
-        if 'delete-button' in trigger_id:
-            button_index = json.loads(trigger_id.split('.')[0])['index']
-            df = df.drop(df.index[button_index])
-        elif 'unit-increase' in trigger_id or 'unit-decrease' in trigger_id:
-            button_index = json.loads(trigger_id.split('.')[0])['index']
-            increment = 1 if 'unit-increase' in trigger_id else -1
-            df.at[button_index, 'units'] = max(0, df.at[button_index, 'units'] + increment)
-        
+        if trigger_id:
+            # Handling delete, increase, and decrease actions
+            if 'delete-button' in trigger_id:
+                button_index = json.loads(trigger_id.split('.')[0])['index']
+                df = df.drop(df.index[button_index])
+            elif 'unit-increase' in trigger_id or 'unit-decrease' in trigger_id:
+                button_index = json.loads(trigger_id.split('.')[0])['index']
+                increment = 1 if 'unit-increase' in trigger_id else -1
+                df.at[button_index, 'units'] = max(0, df.at[button_index, 'units'] + increment)
+
+        # Save and sort dataframe for all scenarios
         df.to_csv(filename, index=False)
         df = df.sort_values(by='time', ascending=False)
 
+        # Common operations for preparing feed layout
         script_dir = os.path.dirname(__file__)
         root_dir = os.path.dirname(script_dir)
         images_folder = os.path.join(root_dir, 'images')
 
-
-        # Convert the selected date string to a datetime object
         try:
             selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
         except ValueError:
-            # Handle the case where selected_date_str is not a valid date string
             selected_date = datetime.today().date()
-            
 
         feed_layout = create_daily_feed(df, images_folder, selected_date)
-       
         return feed_layout

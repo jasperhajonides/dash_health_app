@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 import pandas as pd
 
+from functions.nutrition_processing import scale_row
+
 def create_daily_feed(df, images_folder, selected_date):
     # Convert string date back to datetime object
     # selected_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
@@ -21,6 +23,9 @@ def create_daily_feed(df, images_folder, selected_date):
     for index, row in df_filtered.iterrows():
         image_filename = row.get('file_name', 'default_file_name.png')
         image_path = os.path.join(images_folder, image_filename)
+
+        # update with the amount of units indicated
+        row = scale_row(row)
 
         if row['meal_type'] != current_meal_type:
                 # Meal type header

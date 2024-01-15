@@ -168,3 +168,6 @@ cython_debug/
 # spreadsheets
 .csv
 .xlsx
+
+# notebooks
+.ipynb

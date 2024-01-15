@@ -25,3 +25,4 @@ def search_item_database(selected_row):
         json_entry = {'message': 'No matches found'}
 
     return json_entry
+
