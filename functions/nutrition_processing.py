@@ -4,6 +4,7 @@ import re
 import re
 import json
 import pandas as pd
+import plotly.graph_objs as go
 
 
 def extract_json_string(text):
@@ -32,16 +33,15 @@ def preprocess_and_load_json(response_text):
 
     # Isolate the portion of the text following '```json'
     json_section = extract_json_string(response_text)
-
     # Find all matches of key-value pairs in JSON format
-    key_value_pairs = re.findall(r'"([^"]+)"\s*:\s*("[^"]+"|\d+|\d+\.\d+)', json_section)
+    key_value_pairs = re.findall(r'"([^"]+)"\s*:\s*("[^"]+"|\d+\.\d+|\d+)', json_section)
     # Build a dictionary from these key-value pairs
     json_data = {}
     json_data['llm_output'] = response_text
     for key, value in key_value_pairs:
         # Convert numeric values from strings to numbers
         if value.replace('.', '', 1).isdigit():
-            value = float(value) if '.' in value else int(value)
+            value = float(value) #if '.' in value else int(value)
         else:
             value = value.strip('"')
 
@@ -67,7 +67,7 @@ def convert_to_grams(json_data):
         elif isinstance(value, str):
 
             # if the key is the file name we save the string, otherwise we convert to float.
-            if ("name" in key) or ('llm_output' in key):
+            if ("name" in key) or ('llm_output' in key) or ('description' in key):
                 converted_data[key] = value
             elif  isinstance(value, (int, float)):
                 converted_data[key] = value
@@ -94,7 +94,7 @@ def extract_nutrition(json_data):
     # Define patterns for each category
     carb_pattern = re.compile(r'\b(carb(s|ohydrates?)?)\b', re.IGNORECASE)
     protein_pattern = re.compile(r'\b(protein)\b', re.IGNORECASE)
-    fat_pattern = re.compile(r'\b(total fat)\b', re.IGNORECASE)
+    fat_pattern = re.compile(r'\b(fat)\b', re.IGNORECASE)
     sat_fat_pattern = re.compile(r'\b(saturated fat)\b', re.IGNORECASE)
     unsat_fat_pattern = re.compile(r'\b(unsaturated fat)\b', re.IGNORECASE)
     sugar_pattern = re.compile(r'\b(sugar(s)?)\b', re.IGNORECASE)
@@ -104,6 +104,8 @@ def extract_nutrition(json_data):
     weight_pattern = re.compile(r'\b(weight|grams of|portion size|serving size|grams in)\b', re.IGNORECASE)
     glycemic_index_pattern = re.compile(r'\b(glycemic|GI)\b', re.IGNORECASE)
     name_pattern = re.compile(r'\b(name|product|file)\b', re.IGNORECASE)
+    description_pattern = re.compile(r'\b(name|product|file)\b', re.IGNORECASE)
+
 
     # Initialize values
     
@@ -148,12 +150,12 @@ def extract_nutrition(json_data):
             nutrients['carbohydrates'] = value
         if protein_pattern.search(key):
             nutrients['protein'] = value
-        if fat_pattern.search(key): # and not sat_fat_pattern.search(key) and not unsat_fat_pattern.search(key):
-            nutrients['total fat'] = value
-        if sat_fat_pattern.search(key):
-            nutrients['saturated fat'] = value
         if unsat_fat_pattern.search(key):
             nutrients['unsaturated fat'] = value
+        elif sat_fat_pattern.search(key):
+            nutrients['saturated fat'] = value
+        elif fat_pattern.search(key): # and not sat_fat_pattern.search(key) and not unsat_fat_pattern.search(key):
+            nutrients['fat'] = value
         if sugar_pattern.search(key):
             nutrients['sugar'] = value
         if fiber_pattern.search(key):
@@ -165,9 +167,11 @@ def extract_nutrition(json_data):
         if weight_pattern.search(key):
             nutrients['weight'] = value
         if glycemic_index_pattern.search(key):
-            nutrients['GI'] = value
+            nutrients['glycemic index'] = value
         if "name" in key:
             nutrients['name'] = value
+        if "description" in key:
+            nutrients['description'] = value
         if "llm_output" in key:
             nutrients['llm_output'] = value
 
@@ -176,6 +180,7 @@ def extract_nutrition(json_data):
             nutrients[key] = value
         if key in nonessential_amino_acids:
             nutrients[key] = value
+
 
     return nutrients
 
@@ -254,7 +259,7 @@ def scale_row(row):
 
     scaled_row = row.copy()  # Make a copy of the row to avoid modifying the original data
 
-    exempted_variables = ['GI', 'units']
+    exempted_variables = ['glycemic index', 'units']
 
     # Iterate through each column in the row
     for column, value in row.items():

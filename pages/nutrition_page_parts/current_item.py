@@ -1,12 +1,27 @@
 
 import dash
 from dash import html
+import plotly.graph_objs as go
+from dash import dcc
+
+from functions.nutrition_plots import *
+
+
+def format_value(value, format_str='{:.2f}'):
+    """Formats the value using the given format string if it's a number, otherwise returns it as is."""
+    try:
+        # Check if value is a number and format it
+        return format_str.format(value)
+    except (ValueError, TypeError):
+        # Return the value as is if it's not a number
+        return value
+    
 
 def collate_current_item(json_entry, 
                          weight_input, meal_type):
 
 
-
+    print('PUTTING TOGETHER CURRENT ITEM',json_entry )
     essential_amino_acids = [
         "histidine",
         "isoleucine",
@@ -30,67 +45,240 @@ def collate_current_item(json_entry,
         "tryptophan": 5,       # Estimated at 0.2g per kg of body weight
         "valine": 26,            # Estimated at 1g per kg of body weight
     }
+
+    recommended_minerals = {
+        "calcium": 1000,          # mg
+        "iron": 8,                # mg
+        "magnesium": 420,         # mg
+        "phosphorus": 700,        # mg
+        "potassium": 3400,        # mg
+        "sodium": 1500,           # mg
+        "zinc": 11,               # mg
+        "copper": 900,            # mcg to mg
+        "manganese": 2.3,         # mg
+        "selenium": 55 * 1000,    # mcg to mg
+        "chromium": 35 * 1000,    # mcg to mg
+        "molybdenum": 45 * 1000,  # mcg to mg
+        "iodine": 150 * 1000      # mcg to mg
+    }
+    recommended_vitamins = {
+        "vitamin a": 900 * 1000,  # mcg to mg
+        "vitamin c": 90,          # mg
+        "vitamin d": 20 * 1000,   # mcg to mg
+        "vitamin e": 15,          # mg
+        "vitamin k": 120 * 1000,  # mcg to mg
+        "thiamin (b1)": 1.2,      # mg
+        "riboflavin (b2)": 1.3,   # mg
+        "niacin (b3)": 16,        # mg
+        "vitamin b6": 1.7,        # mg
+        "folate (b9)": 400 * 1000, # mcg to mg
+        "vitamin b12": 2.4 * 1000, # mcg to mg
+        "biotin": 30 * 1000,      # mcg to mg
+        "pantothenic acid (b5)": 5 # mg
+    }
+
     # Convert from grams to milligrams
     recommended_intakes_mg = {key: value * 70 for key, value in recommended_intakes.items()}
-    def create_amino_acid_progress_bar(amino_acid):
-        if amino_acid in json_entry:
-            max_amount = recommended_intakes_mg[amino_acid]
-            actual_amount = json_entry[amino_acid]
-            progress = actual_amount / max_amount
-            progress_percentage = f"{progress * 100:.2f}%"
-            amount_display = f"{actual_amount} mg ({progress_percentage})"
 
-            if 'name' not in json_entry:
-                json_entry['name'] = 'Name not found.'
+    def create_stacked_amino_acid_plot(json_entry, recommended_intakes_mg):
+        amino_acid_names = list(recommended_intakes_mg.keys())
+        completed_percentages = []
+        remaining_percentages = []
+        hover_texts = []
 
-            return html.Div([
-                html.Div(f"{amino_acid.capitalize()}: ", style={'padding': '0', 'display': 'inline-block', 'width': '15%'}),
-                html.Div([
-                    html.Div(style={'width': progress_percentage, 'height': '3px', 'backgroundColor': 'lightblue'}),
-                    html.Div(style={'width': f"{100 - progress * 100:.2f}%", 'height': '3px', 'backgroundColor': 'grey'})
-                ], style={'display': 'flex', 'width': '45%', 'alignItems': 'center', 'margin': '0'}),
-                html.Div(amount_display, style={'padding': '0', 'display': 'inline-block', 'fontSize': 'smaller'})
-            ], style={'display': 'flex', 'justifyContent': 'space-around', 'alignItems': 'center', 'margin': '0'})
-        else:
-            print(f'{amino_acid} not found.')
+        for amino_acid in amino_acid_names:
+            actual_amount = json_entry.get(amino_acid, 0)
+            recommended_amount = recommended_intakes_mg[amino_acid]
+            completed_percentage = (actual_amount / recommended_amount) * 100
+            remaining_percentage = 100 - completed_percentage
+            
+            completed_percentages.append(completed_percentage)
+            remaining_percentages.append(remaining_percentage)
+            
+            hover_text = f"{amino_acid}: {actual_amount}mg ({completed_percentage:.0f}%)"
+            hover_texts.append(hover_text)
 
+        return amino_acid_names, completed_percentages, remaining_percentages, hover_texts
 
 
+    import plotly.graph_objs as go
+
+    def plot_stacked_amino_acid_chart(json_entry, recommended_intakes_mg):
+        amino_acid_names, completed_percentages, remaining_percentages, _ = create_stacked_amino_acid_plot(json_entry, recommended_intakes_mg)
+        
+        # Setting up custom hover text for both parts
+        custom_hover_texts = [f"{round(json_entry.get(amino_acid, 0))}mg<br>({round((json_entry.get(amino_acid, 0) / recommended_intakes_mg[amino_acid]) * 100)}%)" for amino_acid in amino_acid_names]
+        
+        # Pastel colors
+        pastel_blue = 'rgba(173, 216, 230, 0.6)'
+        pastel_grey = 'rgba(220, 220, 220, 0.6)'
+        
+        fig = go.Figure(data=[
+            go.Bar(name='Completed', x=amino_acid_names, y=completed_percentages, marker_color=pastel_blue, hoverinfo='text', hovertext=custom_hover_texts),
+            go.Bar(name='Remaining', x=amino_acid_names, y=remaining_percentages, marker_color=pastel_grey, hoverinfo='text', hovertext=custom_hover_texts)
+        ])
+        
+        fig.update_layout(
+            barmode='stack',
+            plot_bgcolor='white',
+            showlegend=False,
+            width=300,  # Adjusting the width to 50%
+            height=200,  # Reducing the height
+            xaxis=dict(tickangle=-90),  # Vertical x-axis labels
+            yaxis=dict(showticklabels=False),  # Remove y-axis labels
+            margin=dict(l=20, r=20, t=20, b=20)  # Adjust margins to reduce white space
+        )
+        
+        return fig
 
 
 
 
 
-    print('json_entry in current item', json_entry)
+
+
+
+
+    # Define your macros and values
+    macros = ['carbohydrates', 'protein', 'fat']
+    values = [json_entry.get(macro, 0) for macro in macros]
+    colors = ['#ff9999', '#66b3ff', '#99ff99']  # Pastel colors
+
+    # Create traces for each macro
+    traces = []
+    for i, macro in enumerate(macros):
+        traces.append(go.Bar(
+            name=macro,
+            x=[values[i]],
+            y=["Nutrients"],
+            orientation='h',
+            marker=dict(color=colors[i])
+        ))
+
+    # Create the stacked horizontal bar chart
+    stacked_bar_chart = dcc.Graph(
+        figure={
+            'data': traces,
+            'layout': go.Layout(
+                barmode='stack',  # Stacked mode
+                xaxis=dict(showticklabels=False, zeroline=False),  # Hide x-axis labels
+                yaxis=dict(showticklabels=False),  # Hide y-axis labels
+                showlegend=False,  # Optionally hide the legend
+                font=dict(family='Libre Franklin Light'),
+                margin=dict(l=30, r=30, t=10, b=10),  # Adjust margins (30px padding on the sides)
+                height=30,  # Adjust height
+                autosize=True,  # Enable autosizing to fill width
+                paper_bgcolor='rgba(0,0,0,0)',  # Transparent background
+                plot_bgcolor='rgba(0,0,0,0)'  # Transparent background
+            )
+        },
+        config={
+            'displayModeBar': False  # Optionally hide the mode bar
+        }
+    )
+
+
+
+    # Preparing data for the sunburst chart
+    labels = ["Carbohydrates", "Protein", "Total Fat", "Sugar", "Fiber", "Saturated Fat", "Unsaturated Fat"] #, "Essential Amino Acids", "Non-Essential Amino Acids", "Valine"]
+    parents = [ "Calories", "Calories", "Calories", "Carbohydrates", "Carbohydrates", "Total Fat", "Total Fat"] #, "Protein" #, "Protein", "Essential Amino Acids"]
+    values = [ json_entry['carbohydrates'], json_entry['protein'], json_entry['fat'],
+               json_entry.get('sugar', 0), json_entry.get('fiber', ''), json_entry.get('saturated fat', 0),
+               json_entry.get('unsaturated fat', 0)] #, json_entry['essential amino acids'], json_entry['non-essential amino acids'], json_entry['valine']]
+
+    # Creating the sunburst chart
+    sunburst_chart = dcc.Graph(
+        figure=go.Figure(
+            go.Sunburst(
+                labels=labels,
+                parents=parents,
+                values=values,
+                branchvalues="total",
+                hoverinfo="label+value+percent parent"
+            ),
+            layout=go.Layout(
+                margin=dict(t=0, l=0, r=0, b=0),
+                height=100,  # Adjust the height as needed
+                extendpiecolors=True,  # Optional: Extend colorway for depth
+                font=dict(family='Libre Franklin Light')  # Assuming this font is loaded
+            )
+        ),
+        style={'width': '100%', 'height': '300px', 'padding': '0px'}
+    )
+
+
+
+    # Formatting values with superscript labels
+    def format_macros(label, value):
+        return html.Div([html.Span(label, style={'fontSize': '14px'}), f" {value:.2f} g"], style={'fontSize': '22px'})
+
+    # define values for circular progress
+    nutrition_values = [
+        create_circular_progress(json_entry.get('protein', 0), 140, "", "Protein", "#ff6384", radius=45, fontsize_text=16, fontsize_num=24, layout_direction='below'),
+        create_circular_progress(json_entry.get('fat', 0), 100, "", "Fat", "#36a2eb", radius=45, fontsize_text=16, fontsize_num=24),
+        create_circular_progress(json_entry.get('carbohydrates', 0), 250, "", "Carbohydrates", "#4bc0c0", radius=45, fontsize_text=16, fontsize_num=24)]
+    # Additional values for Carbs, Protein, Fat
+    additional_values = {
+        'carbs': [
+            create_circular_progress(json_entry.get('sugar', 0), 100, "g", "Sugar", "#ff9f40", layout_direction='right', radius=20, fontsize_num=18, fontsize_text=14 ),
+            create_circular_progress(json_entry.get('fiber', 0), 30, "g", "Fiber", "#ffcd56", layout_direction='right', radius=20, fontsize_num=18, fontsize_text=14 )
+        ],
+        'protein': [
+            create_circular_progress(json_entry.get('essential amino acids', 0), 50, "g", "Essential Amino Acids", "#9966ff", layout_direction='right', radius=20, fontsize_num=18, fontsize_text=14 ),
+            create_circular_progress(json_entry.get('nonessential amino acids', 0), 50, "g", "Nonessential Amino Acids", "#c9cbcf", layout_direction='right', radius=20, fontsize_num=18, fontsize_text=14 )
+        ],
+        'fat': [
+            create_circular_progress(json_entry.get('saturated fat', 0), 20, "g", "Saturated Fat", "#ff6384", layout_direction='right', radius=20, fontsize_num=18, fontsize_text=14 ),
+            create_circular_progress(json_entry.get('unsaturated fat', 0), 30, "g", "Unsaturated Fat", "#36a2eb", layout_direction='right', radius=20, fontsize_num=18, fontsize_text=14 )
+        ]
+    }
+
+
+
+
 
     layout = html.Div([
-            # Name of the food item
-            html.H4(json_entry['name'], style={'textAlign': 'center', 'paddingBottom': '10px'}),
-            html.H5(meal_type, style={'textAlign': 'center', 'paddingBottom': '10px'}),
+            # Pie chart on the left
+            # Food name and calories on the right
+                html.H4(json_entry.get('name', ''), style={'fontSize': '22px', 'textAlign': 'center'}),
+                html.P([f"{json_entry.get('calories', '')} ", html.Sub("kcal")], style={'fontSize': '24px', 'textAlign': 'center'}),
+        html.H5(meal_type, style={'textAlign': 'center', 'paddingBottom': '10px'}),
 
-            # First row for main macros
+
+        html.Div([sunburst_chart], className='custom-sunburst', style={'padding': '20px'}),
+
+
+        # Main circular progress indicators in a row
+        html.Div([
+            html.Div(nutrition_values[0], className="column"),  # Carbs
+            html.Div(nutrition_values[1], className="column"),  # Protein
+            html.Div(nutrition_values[2], className="column")   # Fat
+        ], style={'display': 'flex', 'justify-content': 'space-around', 'text-align': 'center'}),
+
+        # Additional values below main indicators
+        html.Div([
+            # Carbs additional values
             html.Div([
-                html.Div(f"Calories: {json_entry['calories']:.2f} kcal", style={'padding': '5px', 'display': 'inline-block'}),
-                html.Div(f"Carbohydrates: {json_entry['carbohydrates']:.2f} g", style={'padding': '5px', 'display': 'inline-block'}),
-                html.Div(f"Fat: {json_entry['total fat']:.2f} g", style={'padding': '5px', 'display': 'inline-block'}),
-                html.Div(f"Protein: {json_entry['protein']:.2f} g", style={'padding': '5px', 'display': 'inline-block'})
-            ], style={'display': 'flex', 'justifyContent': 'space-around', 'marginBottom': '10px'}),
-
-            # Second row for additional info
+                html.Div(additional_values['carbs'], className="column")
+            ], className="column"),
+            # Protein additional values
             html.Div([
-                html.Div(f"Sugar: {json_entry['sugar']:.2f} g", style={'padding': '5px', 'display': 'inline-block'}),
-                html.Div(f"Saturated Fat: {json_entry['saturated fat']:.2f} g", style={'padding': '5px', 'display': 'inline-block'}),
-                html.Div(f"Unsaturated Fat: {json_entry['unsaturated fat']:.2f} g", style={'padding': '5px', 'display': 'inline-block'}),
-                html.Div(f"Fiber: {json_entry['fiber']:.2f} g", style={'padding': '5px', 'display': 'inline-block'}),
+                html.Div(additional_values['protein'], className="column")
+            ], className="column"),
+            # Fat additional values
+            html.Div([
+                html.Div(additional_values['fat'], className="column")
+            ], className="column")
+        ], style={'display': 'flex', 'justify-content': 'space-around', 'text-align': 'center', 'margin-top': '20px'}),
+        
 
-            ], style={'display': 'flex', 'justifyContent': 'space-around'}),
+        # Glycemic Index
+        html.Div([
+            html.Div(f"Glycemic Index: {format_value(json_entry.get('glycemic index', ''))}", style={'padding': '5px', 'display': 'inline-block'}),
+        ], style={'display': 'flex', 'justifyContent': 'space-around'}),
 
 
-            html.Div([    
-                html.Div(f"Glycemic Index: {json_entry['GI']:.2f} ", style={'padding': '5px', 'display': 'inline-block'}),
-                ], style={'display': 'flex', 'justifyContent': 'space-around'}),
-
-            html.Div([create_amino_acid_progress_bar(amino_acid) for amino_acid in essential_amino_acids], style={'marginBottom': '10px'}),
+        dcc.Graph(figure=plot_stacked_amino_acid_chart(json_entry, recommended_intakes_mg)),
 
 
 

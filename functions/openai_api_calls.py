@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 from dash.dependencies import Input, Output, State
 import dash
 
-
+from functions.nutrition_processing import *
 
 ### openai key
 import os
@@ -24,7 +24,7 @@ def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
 
-def openai_vision_call(image, textprompt=None, prompt_type='macros'):
+def openai_vision_call(image, textprompt=None, prompt_type='macros', weight=None, protein=None):
 
     if prompt_type == 'macros':
         prompt = """Lets play a game: If there is a food item in this picture: lets try to estimate the serving size together and lets see if we can estimate or look up the nutritional values (in grams or kcal) of the food (serving size in picture; 
@@ -35,7 +35,7 @@ def openai_vision_call(image, textprompt=None, prompt_type='macros'):
             'of which sugar (g)': ,
             'fiber (g)': ,
             'protein (g)':  ,
-            'total fat': , 
+            'total fat (g)': , 
             'saturated fat (g)': 
             'unsaturated fat (g)': ,
             'cholesterol (g): ,
@@ -44,9 +44,10 @@ def openai_vision_call(image, textprompt=None, prompt_type='macros'):
         
         if textprompt is not None:
             prompt = prompt + f""" Some additional information about this image is that it contains: {textprompt}"""
+
     elif prompt_type == 'amino_acids':
 
-        prompt = (f"Lets play a game: If there is a food item in this picture: lets try to estimate the amount of amino acids this this food contains. We estimate it contains  {textprompt}g of protein. I know this is difficult but you it is critical you estimate a miligram value per amino acid. Only respond with  miligram values in this following json format table:"+
+        prompt = (f"Lets play a game: If there is a food item in this picture f{textprompt}: lets try to estimate the amount of amino acids this this food contains. We estimate it weighs {weight}g and contains {protein}g of protein. I know this is difficult but you it is critical you estimate a miligram value per amino acid. Only respond with  miligram values in this following json format table:"+
             """{"essential amino acids":{
                     "histidine": , 
                     "isoleucine" , 
@@ -107,6 +108,13 @@ def openai_vision_call(image, textprompt=None, prompt_type='macros'):
 
 
     text = response.choices[0].message.content
+    message = text.split('```'[0]) # llm output
+    json_data = preprocess_and_load_json(text)
 
-    return text
+    json_grams = convert_to_grams(json_data)
+    # extract nutritional data in standardised format
+    json_nutrition = extract_nutrition(json_grams)
+    
+
+    return json_nutrition, message
     # return None

@@ -128,7 +128,13 @@ def calculate_todays_nutrition():
 import base64
 from dash import html
 
-def create_circular_progress(value, target, unit, description, color, radius=45):
+import base64
+from dash import html
+
+import base64
+from dash import html
+
+def create_circular_progress(value, target, unit, description, color, layout_direction='below', radius=45, fontsize_text=16, fontsize_num=36):
     value = round(value)  # Round the value to an integer
     percentage = min(value / target, 1)  # Ensure percentage doesn't exceed 100%
     circumference = 2 * 3.14 * radius  # Circumference of the circle
@@ -136,27 +142,41 @@ def create_circular_progress(value, target, unit, description, color, radius=45)
 
     # The dash array creates the stroke length
     stroke_dasharray = f"{stroke_length} {circumference}"
-    
+
     # Offset to start the stroke from the top of the circle
     stroke_dashoffset = 0 #-circumference / 4
 
     svg_circle = f'''
-    <svg width="130" height="130" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="65" cy="65" r="{radius}" fill="transparent" stroke="#ddd" stroke-width="4"></circle>
-        <circle cx="65" cy="65" r="{radius}" fill="transparent" stroke="{color}" stroke-width="7"
+    <svg width="{2*radius+10}" height="{2*radius+10}" viewBox="0 0 {2*radius+10} {2*radius+10}" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="{radius+5}" cy="{radius+5}" r="{radius}" fill="transparent" stroke="#ddd" stroke-width="4"></circle>
+        <circle cx="{radius+5}" cy="{radius+5}" r="{radius}" fill="transparent" stroke="{color}" stroke-width="7"
                 stroke-dasharray="{stroke_dasharray}" stroke-dashoffset="{stroke_dashoffset}"
-                style="transform: rotate(-90deg); transform-origin: 65px 65px;"></circle>
+                style="transform: rotate(-90deg); transform-origin: center;"></circle>
         <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" 
-              style="fill: black; font-size: 36px; font-family: Arial;">{value}</text>
+              style="fill: black; font-size: {fontsize_num}px; font-family: Arial;" transform="translate({radius+5}, ${radius+10})">{value}</text>
     </svg>
     '''
 
     encoded_svg = f"data:image/svg+xml;base64,{base64.b64encode(svg_circle.encode()).decode()}"
 
+    img_style = {"width": f"{2*radius+10}px", "height": f"{2*radius+10}px"}
+
+    text_div_style = {'fontSize': f'{fontsize_text}px', 'textAlign': 'center', 'margin': '0'}
+
+    # Adjust styles based on layout direction
+    if layout_direction == 'below':
+        container_style = {"display": "inline-flex", "flexDirection": "column", "alignItems": "center", "padding": "0"}
+        text_div_style.update({'marginTop': '5px'})  # Reduce space between circle and text
+    elif layout_direction == 'right':
+        container_style = {"display": "flex", "alignItems": "center", "padding": "0"}
+        img_style.update({'marginRight': '10px'})  # Reduce space between circle and text
+
     return html.Div([
-        html.Img(src=encoded_svg, style={"width": "130px", "height": "130px"}),
-        html.Div(f"{unit} {description}", style={'fontSize': '16px', 'textAlign': 'center'})
-    ], style={"display": "inline-flex", "flexDirection": "column", "alignItems": "center", "padding": "20px"})
+        html.Img(src=encoded_svg, style=img_style),
+        html.Div(f"{unit} {description}", style=text_div_style)
+    ], style=container_style)
+
+
 
 def create_nutrition_display():
     protein, fat, calories, carbs, sugar = calculate_todays_nutrition()

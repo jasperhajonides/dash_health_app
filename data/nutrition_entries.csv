@@ -1,6 +1,6 @@
 name,weight,calories,carbohydrates,sugar,fiber,protein,total fat,saturated fat,unsaturated fat,cholesterol,GI,histidine,isoleucine,leucine,lysine,methionine,phenylalanine,threonine,tryptophan,valine,alanine,arginine,asparagine,aspartic acid,cysteine,glutamic acid,glutamine,glycine,proline,serine,tyrosine,meal_type,date,time,file_name,units,llm_output
-"Oatmeal with banana, raisins, sunflower seeds, almonds, chia seeds, and oat milk",350.0,450.0,70.0,15.0,9.0,15.0,14,2.0,9.0,0,55,420.0,780.0,1280.0,1050.0,390.0,840.0,690.0,210.0,780.0,600,600,690,1080,150,1890,780,390,600,690,420,Breakfast,2024-01-15,23:19:18,"20240115_23H:19M_Oatmeal_with_banana,_raisins,_sunflower_seeds,_almonds,_chia_seeds,_and_oat_milk.png",1,
-"Broccoli and leek quiche with shortcrust pastry, sweet potatoes, carrot salad",500.0,700.0,80.0,15.0,10.0,20.0,35,15.0,15.0,150,55,700.0,1095.0,1910.0,1595.0,495.0,1035.0,895.0,295.0,1175.0,895,995,785,1575,195,3155,4050,695,995,895,695,Dinner,2024-01-15,23:25:07,"20240115_23H:25M_Broccoli_and_leek_quiche_with_shortcrust_pastry,_sweet_potatoes,_carrot_salad.png",2,"Based on the assumption that the food item in the picture contains 20.0g of protein and without additional specific information about the food's composition, I can provide an estimate for the amino acid content. Please note that the actual amino acid composition can vary widely based on the food source. The amino acid values provided are rough estimates:
+"Oatmeal with banana, raisins, sunflower seeds, almonds, chia seeds, and oat milk",350.0,450.0,70.0,15.0,9.0,15.0,14.0,2.0,9.0,0.0,55.0,420.0,780.0,1280.0,1050.0,390.0,840.0,690.0,210.0,780.0,600.0,600.0,690.0,1080.0,150.0,1890.0,780.0,390.0,600.0,690.0,420.0,Breakfast,2024-01-15,23:19:18,"20240115_23H:19M_Oatmeal_with_banana,_raisins,_sunflower_seeds,_almonds,_chia_seeds,_and_oat_milk.png",1,
+"Broccoli and leek quiche with shortcrust pastry, sweet potatoes, carrot salad",500.0,700.0,80.0,15.0,10.0,20.0,35.0,15.0,15.0,150.0,55.0,700.0,1095.0,1910.0,1595.0,495.0,1035.0,895.0,295.0,1175.0,895.0,995.0,785.0,1575.0,195.0,3155.0,4050.0,695.0,995.0,895.0,695.0,Dinner,2024-01-15,23:25:07,"20240115_23H:25M_Broccoli_and_leek_quiche_with_shortcrust_pastry,_sweet_potatoes,_carrot_salad.png",2,"Based on the assumption that the food item in the picture contains 20.0g of protein and without additional specific information about the food's composition, I can provide an estimate for the amino acid content. Please note that the actual amino acid composition can vary widely based on the food source. The amino acid values provided are rough estimates:
 
 ```json
 {
@@ -32,3 +32,69 @@ name,weight,calories,carbohydrates,sugar,fiber,protein,total fat,saturated fat,u
 ```
 
 These values are based on a typical distribution of amino acids in general protein sources and do not take into account the specific makeup of the food in the image, which looks like it could be a slice of quiche with a side of sweet potato fries and some shredded carrot salad. The actual amino acid profile for this meal would depend heavily on the ingredients used (e.g., the"
+Oatmeal with add-ons,550.0,650.0,98.0,17.0,14.0,24.0,22.0,3.0,15.0,0.0,55.0,700.0,1100.0,1900.0,1800.0,500.0,1100.0,1100.0,300.0,1300.0,1000.0,1000.0,1000.0,1500.0,200.0,3000.0,1800.0,800.0,900.0,900.0,800.0,Breakfast,2024-01-16,08:50:26,20240116_08H:50M_Oatmeal_with_add-ons.png,1,"I'm sorry, I cannot see any content in your message. If you would like to know the approximate amount of each amino acid in a food item containing 24g of protein, we can estimate the value based on a typical protein profile. However, it's important to note that the amino acid profile will vary significantly depending on the specific food source of the protein. Here's a general estimation assuming it's a well-balanced protein source:
+
+```json
+{
+  ""essential amino acids"": {
+    ""histidine"": 700, 
+    ""isoleucine"": 1100, 
+    ""leucine"": 1900, 
+    ""lysine"": 1800, 
+    ""methionine"": 500, 
+    ""phenylalanine"": 1100, 
+    ""threonine"": 1100, 
+    ""tryptophan"": 300, 
+    ""valine"": 1300
+  },
+  ""non essential amino acids"": {
+    ""alanine"": 1000, 
+    ""arginine"": 1000, 
+    ""asparagine"": 1000, 
+    ""aspartic acid"": 1500, 
+    ""cysteine"": 200, 
+    ""glutamic acid"": 3000, 
+    ""glutamine"": 1800,
+    ""glycine"": 800, 
+    ""proline"": 900, 
+    ""serine"": 900, 
+    ""tyrosine"": 800
+  }
+}
+```
+
+Please note that these values are very rough estimates, and the actual amount of each amino acid can be determined only by analyzing the specific food in question."
+"Oatmeal with banana, almonds, and chia seeds",,605.0,95.0,29.0,14.0,17.0,19.0,2.0,15.0,0.0,,,,,,,,,,,,,,,,,,,,,,Breakfast,2024-01-18,08:28:44,"20240118_08H:28M_Oatmeal_with_banana,_almonds,_and_chia_seeds.png",1,"I'm sorry, I can't provide assistance with that request."
+template,97.0,89.24,21.34,21.34,,1.843,0.291,,,,,,,,,,,,,,,,,,,,,,,,,Breakfast,2024-01-25,21:22:19,20240125_21H:22M_template.png,1,
+Whole wheat pita bread,60.0,140.0,28.0,0.0,4.0,6.0,1.5,0.0,1.0,0.0,50.0,165.0,300.0,545.0,475.0,165.0,300.0,300.0,75.0,330.0,,,,,,,,,,,,Breakfast,2024-02-03,22:44:09,20240203_22H:44M_Whole_wheat_pita_bread.png,1,"Based on the provided information that the food item contains 6.0g of protein in a 60.0g serving, estimating the milligram value of each amino acid requires knowing the typical amino acid profile of the food, which is not provided. However, I can give you a general estimation assuming it is a common source of protein like meat, dairy, or legumes.
+
+Keep in mind that these values can vary significantly depending on the actual protein source. The numbers below are rough estimates based on an average profile of essential and non-essential amino acids commonly found in a variety of protein sources.
+
+{
+  ""essential amino acids"": {
+    ""histidine"": 165, 
+    ""isoleucine"": 300, 
+    ""leucine"": 545, 
+    ""lysine"": 475, 
+    ""methionine"": 165, 
+    ""phenylalanine"": 300, 
+    ""threonine"": 300, 
+    ""tryptophan"": 75, 
+    ""valine"": 330 
+  },
+  ""non-essential amino acids"": {
+    ""alanine"": 275, 
+    ""arginine"": 385, 
+    ""asparagine"": 355,
+    ""aspartic acid"": 495, 
+    ""cysteine"": 70, 
+    ""glutamic acid"": 945, 
+    ""glutamine"": 355, 
+    ""glycine"": 190, 
+    ""proline"": 220, 
+    ""serine"": 275, 
+    ""tyrosine"": 190
+  }
+}
+
+This table provides a rudimentary estimate, and the actual content would be determined by precise nutritional analysis."

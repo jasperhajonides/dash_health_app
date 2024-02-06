@@ -1,24 +1,23 @@
 # nutrition.py
 
-import dash
-from dash import dcc, html
-import dash_bootstrap_components as dbc
-
-from dash import callback_context
-
-from dash.dependencies import Input, Output, State, ALL
-from dash.exceptions import PreventUpdate
-
-import pandas as pd
-from datetime import datetime
-
-
 import base64
 from PIL import Image
 import io
 import os
 import json
 
+import dash
+from dash import dcc, html
+import dash_bootstrap_components as dbc
+from dash import callback_context
+from dash.dependencies import Input, Output, State, ALL
+from dash.exceptions import PreventUpdate
+import pandas as pd
+from datetime import datetime
+
+
+
+from icecream import ic
 
 
 
@@ -199,7 +198,7 @@ def nutrition_page():
 
                 # Placeholder for Nutritional Values
                 html.Div(id='dynamic-nutritional-values')
-            ], style={'height': '650px', 'border': '1px solid #ddd', 'borderRadius': '5px', 'padding': '10px'}),
+            ], style={'height': '1150px', 'border': '1px solid #ddd', 'borderRadius': '5px', 'padding': '10px'}),
 
 
 
@@ -392,45 +391,42 @@ def register_callbacks_nutrition(app):
             selected_name = json.loads(selected_id)['index']
             selected_row = df_database[df_database['Food Name'] == selected_name] #.iloc[0].to_dict()
 
-            json_data = search_item_database(selected_row)
-            message = "No matches found " if 'message' in json_data else 'Nutritional data from database'
-
+            json_nutrition_std = search_item_database(selected_row)
+            message = "No matches found " if 'message' in json_nutrition_std else 'Nutritional data from database'
+            print('SEARCH ITEM', json_nutrition_std)
         else:
 
             if stored_image_data is None:
                 raise PreventUpdate
 
             # Call the OpenAI API with the image and input text
-            response_text = openai_vision_call(stored_image_data, textprompt=input_text)
+            json_nutrition_std, message = openai_vision_call(stored_image_data, textprompt=input_text)
             # response_text = """
             # '```json\n{\n  "name item": "Oatmeal with banana and mixed nuts",\n  "grams in picture": 250,\n  "total calories (kcal)": 350,\n  "carbohydrates (g)": 50,\n  "of which sugar (g)": 10,\n  "fiber (g)": 6,\n  "protein (g)": 12,\n  "total fat": 10,\n  "saturated fat (g)": 2,\n  "unsaturated fat (g)": 6,\n  "cholesterol (mg)": 0,\n  "glycemic index (GI)": 55\n}\n``` \n\nPlease note that the nutritional values provided are estimates based on the appearance of the food in the image. The actual values may vary depending on specific ingredients used, their quantities, and how the food was prepared.
             # """
 
-            json_data = preprocess_and_load_json(response_text)
-            message = response_text.split('```')[0]
-        # ensure all values are values
-        json_grams = convert_to_grams(json_data)
-        # extract nutritional data in standardised format
-        json_nutrition_std = extract_nutrition(json_grams)
+            # json_data = preprocess_and_load_json(response_text)
+            # message = response_text.split('```')[0]
+
         
         # also add amino acids please:
         if (ai_toggle_clicks % 2 == 1):
-            response_text = openai_vision_call(stored_image_data, 
-                                               textprompt=json_nutrition_std['protein'], 
-                                               prompt_type='amino_acids')
+            json_data, message = openai_vision_call(stored_image_data, 
+                                               textprompt=input_text, 
+                                               prompt_type='amino_acids',
+                                               weight=json_nutrition_std['weight'],
+                                               protein=json_nutrition_std['protein'])
             # ensure all values are values
 
             # response_text = """
             # '\n                {\n    "essential amino acids": {\n        "histidine": 280, \n        "isoleucine": 440, \n        "leucine": 770, \n        "lysine": 610, \n        "methionine": 220, \n        "phenylalanine": 500, \n        "threonine": 390, \n        "tryptophan": 110, \n        "valine": 500\n    },\n    "non essential amino acids": {\n        "alanine": 400, \n        "arginine": 410, \n        "asparagine": "", \n        "aspartic acid": 660, \n        "cysteine": 110, \n        "glutamic acid": 1470, \n        "glutamine": "", \n        "glycine": 280, \n        "proline": 440, \n        "serine": 460, \n        "tyrosine": 290\n    }\n} \n\nPlease note that the above values are rough estimates as amino acid content can vary based on the specific food item\'s exact composition and preparation method. The values provided are given in milligrams and are estimated based on the assumption that there is 11g of protein in the food item shown (which appears to be oatmeal with some toppings, likely nuts or fruit). The amino acid profile of oats and other possible ingredients such as nuts or fruits would contribute to the overall amino acid composition. Asparagine and glutamine are typically not quantified separately in food amino acid analysis due to their conversion to aspartic acid and glutamic acid, respectively, during acid hydrolysis; hence, they are left blank in this estimation\n            
             # """
-            json_data = preprocess_and_load_json(response_text)
+            # json_data = preprocess_and_load_json(response_text)
 
-            json_grams = convert_to_grams(json_data)
-            # extract nutritional data in standardised format
-            json_nutrition_amino_acids = extract_nutrition(json_grams)
-            json_nutrition_std.update(json_nutrition_amino_acids)
 
-        return json_nutrition_std,  dash.no_update, message
+            json_nutrition_std.update(json_data)
+
+        return json_nutrition_std,  dash.no_update, message #json_grams['llm_output'].spit('```'[0])
 
 
 
@@ -513,11 +509,10 @@ def register_callbacks_nutrition(app):
             "valine"
         ]
         columns_to_adjust = ['calories','carbohydrates','protein','fat',
-                             'fiber','sugar','unsaturated fat','saturated fat','weight','valine'] + essential_amino_acids
+                             'fiber','sugar','unsaturated fat','saturated fat','weight'] + essential_amino_acids
         for entry in columns_to_adjust:
             if entry in json_entry:
                 json_entry[entry] = json_entry[entry]*factor
-
 
 
         # Check if the submit button was clicked
@@ -559,7 +554,6 @@ def register_callbacks_nutrition(app):
             except FileNotFoundError:
                 df = df_new
 
-            print('DF BEFORE SAVE', df)
             # Save updated data
             df.to_csv(filename, index=False)
 
@@ -574,8 +568,10 @@ def register_callbacks_nutrition(app):
         # if ('submit-nutrition-data.n_clicks' in trigger): # or ('update-nutrition-values.n_clicks' in trigger): #or ('add-to-csv-button.n_clicks' in trigger) or submitted_current_item:
             # Call collate_current_item function
         
-        if ('protein' not in json_entry) and ('valine' not in json_entry):
+
+        if ('protein' not in json_entry) and ('fat' not in json_entry) and ('valine' not in json_entry):
             return dash.no_update, dash.no_update
+        
 
         current_item_layout = collate_current_item(json_entry, weight_input, meal_type)
         return current_item_layout, weight_input
