@@ -4,7 +4,15 @@ from dash import html, dcc
 def create_sidebar():
     sidebar = dbc.Col(
         [
-            html.H2("Navigation", className="display-4"),
+# Use a div to horizontally align the logo and the title
+           html.Div(
+                [
+                    html.Img(src="./assets/logo_v1.png", height="50px", className="mr-2"),  # Logo
+                    # Apply the 'gradient-text' class to the H2 element
+                    html.H2("Vitalics.ai", className="gradient-text display-4", style={'fontSize': '2.8rem'}),  # Smaller font size
+                ],
+                style={"display": "flex", "alignItems": "center"}
+            ),
             html.Hr(),
             dbc.Nav(
                 [

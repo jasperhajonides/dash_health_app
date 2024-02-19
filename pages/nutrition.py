@@ -26,6 +26,9 @@ from functions.openai_api_calls import *
 from functions.nutrition_plots import *
 from functions.nutrition_image import *
 
+from llm_code.nutrition_api_calls import NutritionExtraction
+from llm_code.prompt_generation import PromptGenerator
+
 from pages.nutrition_page_parts.current_item import collate_current_item
 from pages.nutrition_page_parts.daily_overview import create_daily_feed
 from pages.nutrition_page_parts.sample_food_item import *
@@ -121,7 +124,7 @@ def nutrition_page():
 # Combined input bar with '✨' AI-toggle, camera icon, and submit button
     html.Div([
     dbc.InputGroup([
-        dbc.Button("✨", id='ai-toggle', n_clicks=0, color="light", style={'borderRadius': '50px 0 0 50px', 'backgroundColor': 'lightblue'}),
+        dbc.Button("✨", id='ai-toggle', n_clicks=1, color="light", style={'borderRadius': '50px 0 0 50px', 'backgroundColor': 'lightblue'}),
         dcc.Upload(
             id='upload-image',
             children=dbc.Button("📷", id='upload-trigger', color="light", style={'borderRadius': '0'}),
@@ -129,7 +132,7 @@ def nutrition_page():
             multiple=True
         ),
         # Custom Text Input for AI mode
-        dbc.Input(id='nutritional-text-input', type="search", placeholder="Optional: add details about intake", style={'display': 'none'}),
+        dbc.Input(id='nutritional-text-input', type="search", placeholder="Optional: add details about intake", className='gradient-input', style={'display': 'none'}),
         dbc.Input(id='food-names-input', type="search", placeholder="Search food items", style={'display': 'block'}),
         dbc.Button("Submit", id="submit-nutrition-data", color="primary", style={'borderRadius': '0 50px 50px 0'}),
     ], style={'width': '65%', 'margin': '0 auto', 'borderRadius': '50px', 'border': '2px solid grey'}),
@@ -399,32 +402,33 @@ def register_callbacks_nutrition(app):
             if stored_image_data is None:
                 raise PreventUpdate
 
-            # Call the OpenAI API with the image and input text
-            json_nutrition_std, message = openai_vision_call(stored_image_data, textprompt=input_text)
-            # response_text = """
-            # '```json\n{\n  "name item": "Oatmeal with banana and mixed nuts",\n  "grams in picture": 250,\n  "total calories (kcal)": 350,\n  "carbohydrates (g)": 50,\n  "of which sugar (g)": 10,\n  "fiber (g)": 6,\n  "protein (g)": 12,\n  "total fat": 10,\n  "saturated fat (g)": 2,\n  "unsaturated fat (g)": 6,\n  "cholesterol (mg)": 0,\n  "glycemic index (GI)": 55\n}\n``` \n\nPlease note that the nutritional values provided are estimates based on the appearance of the food in the image. The actual values may vary depending on specific ingredients used, their quantities, and how the food was prepared.
-            # """
+            # # Call the OpenAI API with the image and input text
+            # json_nutrition_std, message = openai_vision_call(stored_image_data, textprompt=input_text)
 
-            # json_data = preprocess_and_load_json(response_text)
-            # message = response_text.split('```')[0]
+            # run image extraction 
+            nutrition = NutritionExtraction(detail='macro_detailed')
 
-        
-        # also add amino acids please:
-        if (ai_toggle_clicks % 2 == 1):
-            json_data, message = openai_vision_call(stored_image_data, 
-                                               textprompt=input_text, 
-                                               prompt_type='amino_acids',
-                                               weight=json_nutrition_std['weight'],
-                                               protein=json_nutrition_std['protein'])
-            # ensure all values are values
+            # generate prompts
+            pg = PromptGenerator(nutritionextractor=nutrition)
+            prompts = pg.generate_prompts(name_input='food', weight_input=100)
 
-            # response_text = """
-            # '\n                {\n    "essential amino acids": {\n        "histidine": 280, \n        "isoleucine": 440, \n        "leucine": 770, \n        "lysine": 610, \n        "methionine": 220, \n        "phenylalanine": 500, \n        "threonine": 390, \n        "tryptophan": 110, \n        "valine": 500\n    },\n    "non essential amino acids": {\n        "alanine": 400, \n        "arginine": 410, \n        "asparagine": "", \n        "aspartic acid": 660, \n        "cysteine": 110, \n        "glutamic acid": 1470, \n        "glutamine": "", \n        "glycine": 280, \n        "proline": 440, \n        "serine": 460, \n        "tyrosine": 290\n    }\n} \n\nPlease note that the above values are rough estimates as amino acid content can vary based on the specific food item\'s exact composition and preparation method. The values provided are given in milligrams and are estimated based on the assumption that there is 11g of protein in the food item shown (which appears to be oatmeal with some toppings, likely nuts or fruit). The amino acid profile of oats and other possible ingredients such as nuts or fruits would contribute to the overall amino acid composition. Asparagine and glutamine are typically not quantified separately in food amino acid analysis due to their conversion to aspartic acid and glutamic acid, respectively, during acid hydrolysis; hence, they are left blank in this estimation\n            
-            # """
-            # json_data = preprocess_and_load_json(response_text)
+            # run api
+            if input_text is not None:
+                prompts['image_text_prompt'] = prompts['image_text_prompt'] + f' The item in the picture is a {input_text}'
+            json_nutrition_std, missing_keys = nutrition.openai_api_image(prompt = prompts['image_text_prompt'], image=stored_image_data, n=1)
+            print(f'currently a couple of variables are missing {missing_keys}')
+            message = json_nutrition_std['llm_output']
+
+        # # also add amino acids please:
+        # if (ai_toggle_clicks % 2 == 1):
+        #     json_data, message = openai_vision_call(stored_image_data, 
+        #                                        textprompt=input_text, 
+        #                                        prompt_type='amino_acids',
+        #                                        weight=json_nutrition_std['weight'],
+        #                                        protein=json_nutrition_std['protein'])
 
 
-            json_nutrition_std.update(json_data)
+        #     json_nutrition_std.update(json_data)
 
         return json_nutrition_std,  dash.no_update, message #json_grams['llm_output'].spit('```'[0])
 
@@ -612,18 +616,12 @@ def register_callbacks_nutrition(app):
     )
     def process_image(image_contents):
         if image_contents is not None:
-            # Extract the content type (image format) and image data
-            header, encoded = image_contents[0].split(",", 1)
-            image_format = re.search(r'data:image/(.*);base64', header).group(1)
-
-            if 'heic' in image_format.lower():
-                image_format = 'heic'
-
-            image_data = base64.b64decode(encoded)
-            processed_image_data = resize_and_crop_image(image_data, image_format)
-
+            # Process the image, incl conversion to base64 from png jpg or heic
+            base64_image,image_format = resize_and_crop_image(image_contents,
+                                                              pixels_size=512)
+            # print('processed_image_data!!!!', processed_image_data[0:100])
             # Convert the processed image data back to base64 for displaying and storing
-            base64_image = base64.b64encode(processed_image_data).decode()
+            # base64_image, image_format = base64.b64encode(processed_image_data).decode()
             src_str = f"data:image/{image_format};base64,{base64_image}"
 
             image_style = {

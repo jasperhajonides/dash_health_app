@@ -89,7 +89,7 @@ def collate_current_item(json_entry,
         for amino_acid in amino_acid_names:
             actual_amount = json_entry.get(amino_acid, 0)
             recommended_amount = recommended_intakes_mg[amino_acid]
-            completed_percentage = (actual_amount / recommended_amount) * 100
+            completed_percentage = (actual_amount / recommended_amount) * 100*1000
             remaining_percentage = 100 - completed_percentage
             
             completed_percentages.append(completed_percentage)
@@ -101,11 +101,10 @@ def collate_current_item(json_entry,
         return amino_acid_names, completed_percentages, remaining_percentages, hover_texts
 
 
-    import plotly.graph_objs as go
 
     def plot_stacked_amino_acid_chart(json_entry, recommended_intakes_mg):
         amino_acid_names, completed_percentages, remaining_percentages, _ = create_stacked_amino_acid_plot(json_entry, recommended_intakes_mg)
-        
+        print('completed_percentages::::::', completed_percentages)
         # Setting up custom hover text for both parts
         custom_hover_texts = [f"{round(json_entry.get(amino_acid, 0))}mg<br>({round((json_entry.get(amino_acid, 0) / recommended_intakes_mg[amino_acid]) * 100)}%)" for amino_acid in amino_acid_names]
         
@@ -179,32 +178,156 @@ def collate_current_item(json_entry,
 
 
 
-    # Preparing data for the sunburst chart
-    labels = ["Carbohydrates", "Protein", "Total Fat", "Sugar", "Fiber", "Saturated Fat", "Unsaturated Fat"] #, "Essential Amino Acids", "Non-Essential Amino Acids", "Valine"]
-    parents = [ "Calories", "Calories", "Calories", "Carbohydrates", "Carbohydrates", "Total Fat", "Total Fat"] #, "Protein" #, "Protein", "Essential Amino Acids"]
-    values = [ json_entry['carbohydrates'], json_entry['protein'], json_entry['fat'],
-               json_entry.get('sugar', 0), json_entry.get('fiber', ''), json_entry.get('saturated fat', 0),
-               json_entry.get('unsaturated fat', 0)] #, json_entry['essential amino acids'], json_entry['non-essential amino acids'], json_entry['valine']]
+    # Labels for each segment
+    labels = ["Protein", "Carbohydrates", "Total Fat", 
+        "Sugar", "Fiber", "Saturated Fat", "Unsaturated Fat", "Cholesterol",
+        "Essential", "Conditionally Essential", "Nonessential",
+        "Glucose", "Fructose", "Galactose", "Lactose",
+        "Soluble Fiber", "Insoluble Fiber",
+        # Essential Amino Acids
+        "Histidine", "Isoleucine", "Leucine", "Lysine", "Methionine", "Phenylalanine", "Threonine", "Tryptophan", "Valine",
+        # Conditionally Essential Amino Acids
+        "Arginine", "Cysteine", "Glutamine", "Glycine", "Proline", "Tyrosine",
+        # Nonessential Amino Acids
+        "Alanine", "Aspartic Acid", "Asparagine", "Glutamic Acid", "Serine", "Selenocysteine", "Pyrrolysine"
+    ]
 
-    # Creating the sunburst chart
+    # Parents for each segment
+    parents = [ "Calories", "Calories", "Calories",
+        "Carbohydrates", "Carbohydrates", "Total Fat", "Total Fat", "Total Fat",
+        "Protein", "Protein", "Protein",
+        "Sugar", "Sugar", "Sugar", "Sugar",
+        "Fiber", "Fiber",
+        # Essential Amino Acids
+        "Essential", "Essential", "Essential", "Essential", "Essential", "Essential", "Essential", "Essential", "Essential",
+        # Conditionally Essential Amino Acids
+        "Conditionally Essential", "Conditionally Essential", "Conditionally Essential", "Conditionally Essential", "Conditionally Essential", "Conditionally Essential",
+        # Nonessential Amino Acids
+        "Nonessential", "Nonessential", "Nonessential", "Nonessential", "Nonessential", "Nonessential", "Nonessential"
+    ]
+
+    # Values for each segment (example values, replace with your actual data) #json_entry.get('calories', 0),
+    values = [
+        json_entry.get('carbohydrates', 0), 
+        json_entry.get('fat', 0),
+        json_entry.get('sugar', 0), 
+        json_entry.get('fiber', 0), 
+        json_entry.get('saturated fat', 0), 
+        json_entry.get('unsaturated fat', 0), 
+        json_entry.get('cholesterol', 0),
+        # Sum of essential amino acids values
+        sum([json_entry.get(aa, 0) for aa in ['histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'threonine', 'tryptophan', 'valine']]),
+        # Sum of conditionally essential amino acids values
+        sum([json_entry.get(aa, 0) for aa in ['arginine', 'cysteine', 'glutamine', 'glycine', 'proline', 'tyrosine']]),
+        # Sum of nonessential amino acids values
+        sum([json_entry.get(aa, 0) for aa in ['alanine', 'aspartic acid', 'asparagine', 'glutamic acid', 'serine', 'selenocysteine', 'pyrrolysine']]),
+        json_entry.get('glucose', 0), 
+        json_entry.get('fructose', 0), 
+        json_entry.get('galactose', 0), 
+        json_entry.get('lactose', 0),
+        json_entry.get('soluble fiber', 0), 
+        json_entry.get('insoluble fiber', 0),
+        # Essential Amino Acids
+        json_entry.get('histidine', 0), 
+        json_entry.get('isoleucine', 0), 
+        json_entry.get('leucine', 0), 
+        json_entry.get('lysine', 0), 
+        json_entry.get('methionine', 0), 
+        json_entry.get('phenylalanine', 0), 
+        json_entry.get('threonine', 0), 
+        json_entry.get('tryptophan', 0), 
+        json_entry.get('valine', 0),
+        # Conditionally Essential Amino Acids
+        json_entry.get('arginine', 0), 
+        json_entry.get('cysteine', 0), 
+        json_entry.get('glutamine', 0), 
+        json_entry.get('glycine', 0), 
+        json_entry.get('proline', 0), 
+        json_entry.get('tyrosine', 0),
+        # Nonessential Amino Acids
+        json_entry.get('alanine', 0), 
+        json_entry.get('aspartic acid', 0), 
+        json_entry.get('asparagine', 0), 
+        json_entry.get('glutamic acid', 0), 
+        json_entry.get('serine', 0), 
+        json_entry.get('selenocysteine', 0), 
+        json_entry.get('pyrrolysine', 0)
+    ]
+
+    print("LENGTHS: ", len(labels), len(parents), len(values))
+
+
+# Preparing data for the sunburst chart
+    labels = ["Carbohydrates", "Protein", "Total Fat", "Sugar", "Fiber", "Saturated Fat", "Unsaturated Fat",
+               "Cholesterol"
+               ] #, "Essential Amino Acids", "Non-Essential Amino Acids", "Valine"]
+    parents = ["Calories", "Calories", "Calories", "Carbohydrates", "Carbohydrates", "Total Fat", "Total Fat",
+                "Total Fat"
+                ] #, "Protein" #, "Protein", "Essential Amino Acids"]
+    values = [json_entry['carbohydrates'], json_entry['protein'], json_entry['fat'],
+               json_entry.get('sugar', 0), json_entry.get('fiber', 0), 
+               json_entry.get('saturated fat', 0),
+               json_entry.get('unsaturated fat', 0),
+               1,
+            #    json_entry.get('cholesterol', 0)
+               ] 
+
+    # labels =["Protein", "Carbohydrates", "Total Fat", 
+    #     # "Sugar", "Fiber", "Saturated Fat", "Unsaturated Fat", "Cholesterol",
+    #     # "Essential", "Conditionally Essential", "Nonessential",
+    #     # "Glucose", "Fructose", "Galactose", "Lactose",
+    #     # "Soluble Fiber", "Insoluble Fiber"
+    #     ]
+    # parents = ["Calories", "Calories", "Calories",
+    #     # "Carbohydrates", "Carbohydrates", "Total Fat", "Total Fat", "Total Fat",
+    #     # "Protein", "Protein", "Protein",
+    #     # "Sugar", "Sugar", "Sugar", "Sugar",
+    #     # "Fiber", "Fiber"
+    #            ]
+    # parents = [
+    #    json_entry['carbohydrates'], json_entry['protein'], json_entry['fat']
+    #     # json_entry.get('sugar', 0), 
+    #     # json_entry.get('fiber', 0), 
+    #     # json_entry.get('saturated fat', 0), 
+    #     # json_entry.get('unsaturated fat', 0), 
+    #     # json_entry.get('cholesterol', 0),
+    #     # # Sum of essential amino acids values
+    #     # sum([json_entry.get(aa, 0) for aa in ['histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'threonine', 'tryptophan', 'valine']]),
+    #     # # Sum of conditionally essential amino acids values
+    #     # sum([json_entry.get(aa, 0) for aa in ['arginine', 'cysteine', 'glutamine', 'glycine', 'proline', 'tyrosine']]),
+    #     # # Sum of nonessential amino acids values
+    #     # sum([json_entry.get(aa, 0) for aa in ['alanine', 'aspartic acid', 'asparagine', 'glutamic acid', 'serine', 'selenocysteine', 'pyrrolysine']]),
+    #     # json_entry.get('glucose', 0), 
+    #     # json_entry.get('fructose', 0), 
+    #     # json_entry.get('galactose', 0), 
+    #     # json_entry.get('lactose', 0),
+    #     # json_entry.get('soluble fiber', 0), 
+    #     # json_entry.get('insoluble fiber', 0),
+    #     ]
+
+
+
     sunburst_chart = dcc.Graph(
-        figure=go.Figure(
-            go.Sunburst(
-                labels=labels,
-                parents=parents,
-                values=values,
-                branchvalues="total",
-                hoverinfo="label+value+percent parent"
+            figure=go.Figure(
+                go.Sunburst(
+                    labels=labels,
+                    parents=parents,
+                    values=values,
+                    branchvalues="total",
+                    hoverinfo="label+value+percent parent"
+                ),
+                layout=go.Layout(
+                    margin=dict(t=0, l=0, r=0, b=0),
+                    # Make sure to set a fixed height and width in the layout
+                    height=300,  # Define the fixed height
+                    width=300,   # Define the fixed width
+                    extendpiecolors=True,  # Optional: Extend colorway for depth
+                    font=dict(family='Libre Franklin Light'),  # Assuming this font is loaded
+                )
             ),
-            layout=go.Layout(
-                margin=dict(t=0, l=0, r=0, b=0),
-                height=100,  # Adjust the height as needed
-                extendpiecolors=True,  # Optional: Extend colorway for depth
-                font=dict(family='Libre Franklin Light')  # Assuming this font is loaded
-            )
-        ),
-        style={'width': '100%', 'height': '300px', 'padding': '0px'}
-    )
+            style={'width': '300px', 'height': '300px', 'padding': '0px'},
+            config={'responsive': False}  # Prevent the chart from being responsive
+        )
 
 
 
@@ -245,8 +368,15 @@ def collate_current_item(json_entry,
         html.H5(meal_type, style={'textAlign': 'center', 'paddingBottom': '10px'}),
 
 
-        html.Div([sunburst_chart], className='custom-sunburst', style={'padding': '20px'}),
-
+        html.Div(
+            [sunburst_chart], 
+            className='custom-sunburst', 
+            style={
+                'padding': '20px', 
+                'display': 'flex', 
+                'justify-content': 'center'  # This will center the chart horizontally
+            }
+        ),
 
         # Main circular progress indicators in a row
         html.Div([

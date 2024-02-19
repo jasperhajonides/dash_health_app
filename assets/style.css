@@ -22,3 +22,20 @@ body {
     text-align: center;
     width: 100%; /* Optional, adjust as needed */
 }
+
+/* The Name on the sidebar */
+
+.gradient-text {
+    font-weight: bold; /* Bold font */
+    background: linear-gradient(to right, #2FBBA7, #0A446D); /* Gradient color */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline;
+}
+
+.gradient-input {
+    border: 0.25px solid transparent !important;
+    background-image: linear-gradient(white, white), linear-gradient(to right, #008080, #00008B) !important;
+    background-origin: border-box !important;
+    background-clip: content-box, border-box !important;
+}

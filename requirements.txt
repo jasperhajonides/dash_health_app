@@ -4,3 +4,5 @@ dash_core_components
 dash_daq
 openpyxl
 pyheif-pillow-opener
+icecream
+dash_daq
