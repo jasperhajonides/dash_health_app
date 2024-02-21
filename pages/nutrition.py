@@ -409,7 +409,7 @@ def register_callbacks_nutrition(app):
             nutrition = NutritionExtraction(detail='macro_detailed')
 
             # generate prompts
-            pg = PromptGenerator(nutritionextractor=nutrition)
+            pg = PromptGenerator(nutrition_class=nutrition)
             prompts = pg.generate_prompts(name_input='food', weight_input=100)
 
             # run api
@@ -529,7 +529,6 @@ def register_callbacks_nutrition(app):
 
             # now save the csv
             filename = 'data/nutrition_entries.csv'
-            filename = '/Users/jasperhajonides/Documents/Projects/website/dash_health_app/data/nutrition_entries.csv'
             now = datetime.now()
 
             # Convert JSON to DataFrame

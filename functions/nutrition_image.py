@@ -9,7 +9,8 @@ import tempfile
 from icecream import ic
 
 def convert_heic_to_jpeg(heic_path, jpeg_path):
-    subprocess.run(["convert", heic_path, jpeg_path], check=True)
+    # subprocess.run(["convert", heic_path, jpeg_path], check=True)
+    subprocess.run(["magick", "convert", heic_path, jpeg_path], check=True)
 
 def is_heic_image(image_data):
     # HEIC files typically contain the string 'ftypheic' somewhere in their first few kilobytes.

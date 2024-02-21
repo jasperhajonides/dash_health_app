@@ -1,8 +1,16 @@
+pandas
+numpy
 dash
 dash_bootstrap_components
 dash_core_components
 dash_daq
+plotly
+Pillow
 openpyxl
+openai
 pyheif-pillow-opener
 icecream
-dash_daq
+python-dotenv
+fitparse
+ipywidgets
+tqdm

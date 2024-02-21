@@ -31,28 +31,27 @@ class PromptGenerator:
         Parameters:
         - json_input: The dictionary containing JSON input data.
         - detail: defines the level of detail for nutritional variables to extract. Optional.
-        - nutritionextractor: An optional instance of NutritionExtraction to use for extracting missing keys.
+        - nutrition_class: An optional instance of NutritionExtraction to use for extracting missing keys.
         """
         
         # Check if a NutritionExtraction instance is provided
         if nutrition_class is not None:
 
             print('found nutrition class')
-            self.nutritionextractor = nutrition_class
-            # Assuming missing_keys is an attribute of NutritionExtraction containing missing keys
-            self.missing_keys = self.nutritionextractor.missing_keys
-            self.json_input = self.nutritionextractor.nutrition_dict
-            self.generate_values = str(self.nutritionextractor.nutrition_vars)
+            self.nutrition_class = nutrition_class
+            # Assuming missing_keys is an attribute of NutritionExtraction class containing missing keys
+            self.missing_keys = self.nutrition_class.missing_keys
+            self.json_input = self.nutrition_class.nutrition_dict
+            self.generate_values = str(self.nutrition_class.nutrition_vars)
         else:
             # If no NutritionExtraction instance is provided, default to using the detail parameter
             self.nutrition_class = nutrition_class
-            # Find missing values based on the provided JSON input if no nutritionextractor is given
+            # Find missing values based on the provided JSON input if no nutrition_class is given
             self.missing_keys = []
             self.json_input = json_input
             # if no level of detail is ps
             self.generate_values = "['name','weight','description','calories', 'carbohydrates','protein','fat','saturated fat','unsaturated fat','sugar', 'glycemic index', fiber,'iron']"
 
-        print('WE ARE GOING TO GENERATE THESE VALS', self.generate_values )
         self.json_input = self.ensure_keys_in_json_input(self.json_input, self.required_keys)
 
 

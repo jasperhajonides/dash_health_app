@@ -14,9 +14,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv()
-api_key = os.getenv("API_KEY")
 # Set the environment variable
-os.environ["OPENAI_API_KEY"] = api_key
+# os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 ####
 
 # Function to encode the image
@@ -79,7 +78,7 @@ def openai_vision_call(image, textprompt=None, prompt_type='macros', weight=None
     if len(image) < 500:  # Assuming file paths will be shorter than 500 characters
         image = encode_image(image)
 
-    api_key = os.getenv("API_KEY")
+    api_key = os.getenv("OPENAI_API_KEY")
     client = OpenAI(api_key=api_key) 
 
     response = client.chat.completions.create(

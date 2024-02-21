@@ -5,10 +5,14 @@ from dotenv import load_dotenv
 from llm_code.api_helper_functions import *
 
 load_dotenv()
-api_key = os.getenv("API_KEY")
-# Set the environment variable
-os.environ["OPENAI_API_KEY"] = api_key
 
+# api_key = os.getenv("API_KEY")
+# # Set the environment variable
+# os.environ["OPENAI_API_KEY"] = api_key
+# os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+# Try to get the OPENAI_API_KEY
+api_key = os.getenv("OPENAI_API_KEY")
+print(api_key)
 
 class NutritionExtraction:
     # Dictionary mapping detail levels to nutritional components
@@ -152,7 +156,7 @@ class NutritionExtraction:
         - A dictionary representing the nutritional variables and quantities
         - a list of missing variables, compared against the defined nutritional detail when initialising the class.
         """
-        api_key = os.getenv("API_KEY")
+        api_key = os.getenv("OPENAI_API_KEY")
         client = OpenAI(api_key=api_key) 
         self.response = client.chat.completions.create(
             model=model, #gpt-3.5-turbo-1106 "gpt-4" gpt-4-0613
@@ -206,7 +210,7 @@ class NutritionExtraction:
         - A dictionary representing the response.
         """
         # define input
-        api_key = os.getenv("API_KEY")
+        api_key = os.getenv("OPENAI_API_KEY")
         client = OpenAI(api_key=api_key) 
         self.response = client.chat.completions.create(
             model=model,

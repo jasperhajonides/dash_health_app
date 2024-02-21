@@ -17,14 +17,14 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 # Replace '/path/to/your/folder' with the actual path of your folder
-folder_path = '/Users/jasperhajonides/Documents/Projects/datascience/fitness_insights'
+# folder_path = '/Users/jasperhajonides/Documents/Projects/datascience/fitness_insights'
 
-# Add the folder to sys.path
-if folder_path not in sys.path:
-    sys.path.append(folder_path)
+# # Add the folder to sys.path
+# if folder_path not in sys.path:
+#     sys.path.append(folder_path)
 
     
-from fitness_insights.extraction.fit_import import LoadFitFiles
+from functions.fit_import import LoadFitFiles
 
 
 

@@ -62,6 +62,8 @@ def update_json_with_amino_acids(json_avg, full_nutr_dict):
     # Define the categories of amino acids to check and sum
     amino_acid_categories = ['essential amino acids', 'conditionally essential amino acids', 'nonessential amino acids']
     for category in amino_acid_categories:
+
+
         # Proceed only if the category key doesn't already exist in json_avg
         if category not in json_avg:
             # Initialize the sum for the current category
@@ -70,7 +72,15 @@ def update_json_with_amino_acids(json_avg, full_nutr_dict):
             for amino_acid in full_nutr_dict[category]:
                 # If the amino acid is present in json_avg, add its value to the sum
                 if amino_acid in json_avg:
-                    sum_amino_acids += json_avg[amino_acid]
+                    try:
+                        # Convert the value to float before adding
+                        sum_amino_acids += float(json_avg[amino_acid])
+                    except ValueError:
+                        # Handle the case where json_avg[amino_acid] cannot be converted to float
+                        print(f"Error converting {json_avg[amino_acid]} to float for amino acid {amino_acid}")
+                
+
+                    # sum_amino_acids += json_avg[amino_acid]
             # Add the sum to json_avg under the current category, but only if we found any to sum
             if sum_amino_acids > 0:
                 json_avg[category] = sum_amino_acids

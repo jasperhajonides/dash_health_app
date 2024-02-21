@@ -20,7 +20,7 @@ def format_value(value, format_str='{:.2f}'):
 def collate_current_item(json_entry, 
                          weight_input, meal_type):
 
-
+    print(json_entry)
     print('PUTTING TOGETHER CURRENT ITEM',json_entry )
     essential_amino_acids = [
         "histidine",
@@ -208,6 +208,7 @@ def collate_current_item(json_entry,
 
     # Values for each segment (example values, replace with your actual data) #json_entry.get('calories', 0),
     values = [
+        json_entry.get('protein', 0),
         json_entry.get('carbohydrates', 0), 
         json_entry.get('fat', 0),
         json_entry.get('sugar', 0), 
@@ -256,21 +257,21 @@ def collate_current_item(json_entry,
 
     print("LENGTHS: ", len(labels), len(parents), len(values))
 
-
+    
 # Preparing data for the sunburst chart
-    labels = ["Carbohydrates", "Protein", "Total Fat", "Sugar", "Fiber", "Saturated Fat", "Unsaturated Fat",
-               "Cholesterol"
-               ] #, "Essential Amino Acids", "Non-Essential Amino Acids", "Valine"]
-    parents = ["Calories", "Calories", "Calories", "Carbohydrates", "Carbohydrates", "Total Fat", "Total Fat",
-                "Total Fat"
-                ] #, "Protein" #, "Protein", "Essential Amino Acids"]
-    values = [json_entry['carbohydrates'], json_entry['protein'], json_entry['fat'],
-               json_entry.get('sugar', 0), json_entry.get('fiber', 0), 
-               json_entry.get('saturated fat', 0),
-               json_entry.get('unsaturated fat', 0),
-               1,
-            #    json_entry.get('cholesterol', 0)
-               ] 
+    # labels = ["Carbohydrates", "Protein", "Total Fat", "Sugar", "Fiber", "Saturated Fat", "Unsaturated Fat",
+    #            "Cholesterol"
+    #            ] #, "Essential Amino Acids", "Non-Essential Amino Acids", "Valine"]
+    # parents = ["Calories", "Calories", "Calories", "Carbohydrates", "Carbohydrates", "Total Fat", "Total Fat",
+    #             "Total Fat"
+    #             ] #, "Protein" #, "Protein", "Essential Amino Acids"]
+    # values = [json_entry['carbohydrates'], json_entry['protein'], json_entry['fat'],
+    #            json_entry.get('sugar', 0), json_entry.get('fiber', 0), 
+    #            json_entry.get('saturated fat', 0),
+    #            json_entry.get('unsaturated fat', 0),
+    #            1,
+    #         #    json_entry.get('cholesterol', 0)
+    #            ] 
 
     # labels =["Protein", "Carbohydrates", "Total Fat", 
     #     # "Sugar", "Fiber", "Saturated Fat", "Unsaturated Fat", "Cholesterol",
