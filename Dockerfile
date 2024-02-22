@@ -8,8 +8,10 @@ WORKDIR /code
 # Combine system package updates, installations, and clean-up to reduce image layers and size.
 # Besides ImageMagick, the 'libde265-dev' and 'libheif-dev' packages are installed for the 'pyheif' Python library.
 # 'gcc' and 'g++' are included in the 'build-essential' package, which are required for Python library compilations.
+# Install Python and ImageMagick
 RUN apt-get update && apt-get install -y \
     imagemagick \
+    libmagickwand-dev \
     libde265-dev \
     libheif-dev \
     build-essential \

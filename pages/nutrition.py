@@ -9,6 +9,9 @@ import json
 import dash
 from dash import dcc, html
 import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
+from dash_iconify import DashIconify
+
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
@@ -32,6 +35,7 @@ from llm_code.prompt_generation import PromptGenerator
 from pages.nutrition_page_parts.current_item import collate_current_item
 from pages.nutrition_page_parts.daily_overview import create_daily_feed
 from pages.nutrition_page_parts.sample_food_item import *
+from pages.history_ui import generate_settings_offcanvas
 
 # Function to parse the contents of the uploaded file
 def parse_contents(contents):
@@ -91,9 +95,26 @@ footer = html.Div(
     }
 )
 
+# define the 
+settings_offcanvas = generate_settings_offcanvas(
+    settings_offcanvas_id="settings-offcanvas"
+)
+
 def nutrition_page():
 
     layout = html.Div([
+
+    settings_offcanvas,
+    dmc.Button(
+        DashIconify(icon="octicon:gear-16"),
+        id="settings-button",
+        variant="gradient",
+        gradient={"from": "#004D40", "to": "#2d695e"},
+        radius="xl",
+        style={"position": "absolute", "top": "10px", "right": "10px"},
+        # compact=True,
+    ),
+
     html.H2("Nutritional Information", className="text-center mb-3"),
 
      # Carousel Content
@@ -253,6 +274,18 @@ def nutrition_page():
 
 
 def register_callbacks_nutrition(app):
+
+    # Callback to toggle settings offcanvas
+    @app.callback(
+        Output("settings-offcanvas", "is_open", allow_duplicate=True),
+        Input("settings-button", "n_clicks"),
+        State("settings-offcanvas", "is_open"),
+        prevent_initial_call=True,
+    )
+    def toggle_settings_offcanvas(n, is_open):
+        if n:
+            return not is_open
+        return is_open
 
     # Callback to toggle AI mode and switch between text input and dropdown
     @app.callback(
