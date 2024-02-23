@@ -1,47 +1,59 @@
 import dash_bootstrap_components as dbc
 from dash import html, dcc
 
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+import dash_iconify as di
+
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+import dash_iconify as di
+
 def create_sidebar():
+    # Define a function to generate icon links with hover effects
+    def icon_link(icon, href, text, id):
+        return html.Div(
+            [
+                dcc.Link(
+                    di.DashIconify(icon=icon, width=24, height=24, className="mr-2"),
+                    href=href,
+                ),
+                dbc.Tooltip(text, target=id, placement="right"),
+            ],
+            className="d-flex align-items-center my-2 icon-container",
+            id=id,
+        )
+
     sidebar = dbc.Col(
         [
-# Use a div to horizontally align the logo and the title
-           html.Div(
+            html.Div(
                 [
-                    html.Img(src="./assets/logo_v1.png", height="50px", className="mr-2"),  # Logo
-                    # Apply the 'gradient-text' class to the H2 element
-                    html.H2("Vitalics.ai", className="gradient-text display-4", style={'fontSize': '2.8rem'}),  # Smaller font size
+                    html.Img(src="./assets/logo_v1.png", height="50px", className="mr-2"),
+                    html.H2("Vitalics.ai", className="gradient-text display-4", style={'fontSize': '2.8rem'}),
                 ],
                 style={"display": "flex", "alignItems": "center"}
             ),
             html.Hr(),
             dbc.Nav(
                 [
-                    dbc.NavLink("Home", href="/", active="exact", className="sidebar-link"),
-                    dbc.NavLink("All Activities", href="/all-activities", active="exact", className="sidebar-link"),
-                    dbc.DropdownMenu(
-                        label="Activities",
-                        children=[
-                            dbc.DropdownMenuItem("Swimming", id="swimming"),
-                            dbc.DropdownMenuItem("Cycling", id="cycling"),
-                            dbc.DropdownMenuItem("Running", id="running"),
-                            dbc.DropdownMenuItem("Gym", id="gym"),
-                        ],
-                        nav=True,
-                        in_navbar=True,
-                        className="sidebar-link"
-                    ),
-                    dbc.NavLink("Profile", href="/profile", active="exact", className="sidebar-link"),
-                    dbc.NavLink("Nutrition", href="/nutrition", active="exact", className="sidebar-link"),
-                    dbc.NavLink("Information", href="/information", active="exact", className="sidebar-link"),
+                    icon_link("mdi:home", "/", "Home", "home-icon"),
+                    icon_link("mdi:format-list-bulleted", "/all-activities", "All Activities", "all-activities-icon"),
+                    icon_link("mdi:run", "/activities", "Activities", "activities-icon"),
+                    icon_link("mdi:account-circle", "/profile", "Profile", "profile-icon"),
+                    icon_link("mdi:food-apple", "/nutrition", "Nutrition", "nutrition-icon"),
+                    icon_link("mdi:information-outline", "/information", "Information", "information-icon"),
                 ],
                 vertical=True,
                 pills=True,
+                className="d-flex flex-column align-items-start",
             ),
         ],
         style={"width": "20%", "position": "fixed", "left": 0, "top": 0, "bottom": 0, "padding": "2rem 1rem"},
         className="bg-light",
     )
     return sidebar
+
+
 
 
 

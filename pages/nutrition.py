@@ -10,7 +10,8 @@ import dash
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
-from dash_iconify import DashIconify
+
+import dash_iconify as di
 
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
@@ -36,6 +37,8 @@ from pages.nutrition_page_parts.current_item import collate_current_item
 from pages.nutrition_page_parts.daily_overview import create_daily_feed
 from pages.nutrition_page_parts.sample_food_item import *
 from pages.history_ui import generate_settings_offcanvas
+from pages.daily_logbooks import create_logbook_panel
+
 
 # Function to parse the contents of the uploaded file
 def parse_contents(contents):
@@ -102,18 +105,33 @@ settings_offcanvas = generate_settings_offcanvas(
 
 def nutrition_page():
 
+
     layout = html.Div([
 
-    settings_offcanvas,
-    dmc.Button(
-        DashIconify(icon="octicon:gear-16"),
-        id="settings-button",
-        variant="gradient",
-        gradient={"from": "#004D40", "to": "#2d695e"},
-        radius="xl",
-        style={"position": "absolute", "top": "10px", "right": "10px"},
-        # compact=True,
+    dbc.Container([
+        html.Button(
+        children=[
+            di.DashIconify(icon="mdi:book-open-page-variant", width=30, height=30, style={"verticalAlign": "middle"}),
+            " Daily Overview"
+        ],
+        id="toggle-settings",
+        style={
+            "position": "fixed",
+            "bottom": "20px",
+            "left": "50%",
+            "transform": "translateX(-50%)",
+            "transition": "bottom 0.5s ease-out",
+            "zIndex": "1030",
+            "background": "linear-gradient(90deg, rgba(0,77,64,1) 0%, rgba(45,105,94,1) 100%)",
+            "border": "none",
+            "color": "white",
+            "padding": "10px 20px",
+            "borderRadius": "30px",
+            "cursor": "pointer"
+        }
     ),
+        create_logbook_panel(),
+    ], style={"position": "relative", "padding": "2rem"}),
 
     html.H2("Nutritional Information", className="text-center mb-3"),
 
@@ -240,31 +258,31 @@ def nutrition_page():
     ], style={'display': 'flex', 'justify-content': 'center', 'width': '100%', 'lineHeight': '34px'}),
 
     ################# daily feed  ################
-    html.H2('Daily feed'),
-    html.Div([
-        # Left arrow button
-        html.Button('←', id='prev-day-button', 
-                    style={'display': 'inline-block', 'background-color': 'white', 'border': '1px solid darkgrey'}),
+    # html.H2('Daily feed'),
+    # html.Div([
+    #     # Left arrow button
+    #     html.Button('←', id='prev-day-button', 
+    #                 style={'display': 'inline-block', 'background-color': 'white', 'border': '1px solid darkgrey'}),
         
-        # Date picker
-        dcc.DatePickerSingle(
-            id='selected-date',
-            date=datetime.today().date(),
-            style={'display': 'inline-block'}
-        ),
+    #     # Date picker
+    #     dcc.DatePickerSingle(
+    #         id='selected-date',
+    #         date=datetime.today().date(),
+    #         style={'display': 'inline-block'}
+    #     ),
 
-        # Right arrow button
-        html.Button('→', id='next-day-button', 
-                    style={'display': 'inline-block', 'background-color': 'white', 'border': '1px solid darkgrey'}),
-    ], style={'textAlign': 'center', 'padding': '10px'}),
+    #     # Right arrow button
+    #     html.Button('→', id='next-day-button', 
+    #                 style={'display': 'inline-block', 'background-color': 'white', 'border': '1px solid darkgrey'}),
+    # ], style={'textAlign': 'center', 'padding': '10px'}),
 
-    # show the previous entries (today)
+    # # show the previous entries (today)
 
-    html.Div([dbc.Button('Show Entries', id='refresh-entries-button', color="primary", className="mb-3")
-            ], style={'text-align': 'center', 'padding-top': '24px'}),
+    # html.Div([dbc.Button('Show Entries', id='refresh-entries-button', color="primary", className="mb-3")
+    #         ], style={'text-align': 'center', 'padding-top': '24px'}),
 
-    html.Div(id='recent-entries-container'),
-    footer,
+    # html.Div(id='recent-entries-container'),
+    # footer,
 
 
     
@@ -275,17 +293,33 @@ def nutrition_page():
 
 def register_callbacks_nutrition(app):
 
-    # Callback to toggle settings offcanvas
     @app.callback(
-        Output("settings-offcanvas", "is_open", allow_duplicate=True),
-        Input("settings-button", "n_clicks"),
-        State("settings-offcanvas", "is_open"),
-        prevent_initial_call=True,
+        [
+            Output("settings-panel", "style"),
+            Output("toggle-settings", "style")
+        ],
+        [Input("toggle-settings", "n_clicks")],
+        [
+            State("settings-panel", "style"),
+            State("toggle-settings", "style")
+        ],
     )
-    def toggle_settings_offcanvas(n, is_open):
-        if n:
-            return not is_open
-        return is_open
+    def toggle_settings_panel(n_clicks, panel_style, button_style):
+        if n_clicks:
+            if panel_style["bottom"] == "0%":
+                # Panel is open; move it to "closed" state, leaving a small part visible
+                panel_style["bottom"] = "-45%"  # Adjust as needed
+                button_style["bottom"] = "2.5%"  # Adjust to align with the visible part of the panel
+            else:
+                # Panel is "closed"; open it fully, but ensure it slides just below half the button
+                panel_style["bottom"] = "0%"
+                button_style["bottom"] = "47.5%"  # Adjust so the panel goes slightly under the button
+            return panel_style, button_style
+        return panel_style, button_style
+
+
+
+
 
     # Callback to toggle AI mode and switch between text input and dropdown
     @app.callback(
@@ -702,88 +736,88 @@ def register_callbacks_nutrition(app):
             return carousel_items[current_index](), {'index': current_index}
 
 
-    @app.callback(
-        Output('selected-date', 'date'),
-        [
-            Input('prev-day-button', 'n_clicks'),
-            Input('next-day-button', 'n_clicks'),
-            Input('selected-date', 'date'),
-        ],
-        [State('selected-date', 'date')]
-    )
-    def change_date(prev_clicks, next_clicks, selected_date, current_date):
-        ctx = dash.callback_context
+    # @app.callback(
+    #     Output('selected-date', 'date'),
+    #     [
+    #         Input('prev-day-button', 'n_clicks'),
+    #         Input('next-day-button', 'n_clicks'),
+    #         Input('selected-date', 'date'),
+    #     ],
+    #     [State('selected-date', 'date')]
+    # )
+    # def change_date(prev_clicks, next_clicks, selected_date, current_date):
+    #     ctx = dash.callback_context
 
-        # Check which button was clicked
-        if not ctx.triggered:
-            raise dash.exceptions.PreventUpdate
+    #     # Check which button was clicked
+    #     if not ctx.triggered:
+    #         raise dash.exceptions.PreventUpdate
 
-        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    #     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-        # Calculate the new date
-        date = datetime.strptime(current_date, '%Y-%m-%d').date()
-        if button_id == 'prev-day-button':
-            new_date = date - timedelta(days=1)
-        elif button_id == 'next-day-button':
-            new_date = date + timedelta(days=1)
-        else:
-            raise dash.exceptions.PreventUpdate
+    #     # Calculate the new date
+    #     date = datetime.strptime(current_date, '%Y-%m-%d').date()
+    #     if button_id == 'prev-day-button':
+    #         new_date = date - timedelta(days=1)
+    #     elif button_id == 'next-day-button':
+    #         new_date = date + timedelta(days=1)
+    #     else:
+    #         raise dash.exceptions.PreventUpdate
 
-        return new_date.strftime('%Y-%m-%d')
+    #     return new_date.strftime('%Y-%m-%d')
 
 
 
-    @app.callback(
-        Output('recent-entries-container', 'children'),
-        [
-            Input('submit-nutrition-data', 'n_clicks'),
-            Input('refresh-entries-button', 'n_clicks'),
-            Input({'type': 'delete-button', 'index': ALL}, 'n_clicks'),
-            Input({'type': 'unit-increase', 'index': ALL}, 'n_clicks'),
-            Input({'type': 'unit-decrease', 'index': ALL}, 'n_clicks'),
-            Input('update-trigger', 'data'),
-            Input('selected-date', 'date'),
-            Input('add-to-csv-button', 'n_clicks')
-        ],
-    )
-    def update_entries(submit_clicks, refresh_clicks, delete_clicks, increase_clicks, decrease_clicks, update_trigger, selected_date_str, add_clicks):
-        ctx = dash.callback_context
-        trigger_id = ctx.triggered[0]['prop_id'] if ctx.triggered else None
+    # @app.callback(
+    #     Output('recent-entries-container', 'children'),
+    #     [
+    #         Input('submit-nutrition-data', 'n_clicks'),
+    #         Input('refresh-entries-button', 'n_clicks'),
+    #         Input({'type': 'delete-button', 'index': ALL}, 'n_clicks'),
+    #         Input({'type': 'unit-increase', 'index': ALL}, 'n_clicks'),
+    #         Input({'type': 'unit-decrease', 'index': ALL}, 'n_clicks'),
+    #         Input('update-trigger', 'data'),
+    #         Input('selected-date', 'date'),
+    #         Input('add-to-csv-button', 'n_clicks')
+    #     ],
+    # )
+    # def update_entries(submit_clicks, refresh_clicks, delete_clicks, increase_clicks, decrease_clicks, update_trigger, selected_date_str, add_clicks):
+    #     ctx = dash.callback_context
+    #     trigger_id = ctx.triggered[0]['prop_id'] if ctx.triggered else None
 
-        # Always read the CSV file when the callback is triggered
-        filename = 'data/nutrition_entries.csv'
-        try:
-            df = pd.read_csv(filename)
-            if 'units' not in df.columns:
-                df['units'] = 1
-            else:
-                df['units'] = df['units'].fillna(1).apply(lambda x: 1 if pd.isna(x) or x <= 0 else x)
-        except FileNotFoundError:
-            return "No entries found."
+    #     # Always read the CSV file when the callback is triggered
+    #     filename = 'data/nutrition_entries.csv'
+    #     try:
+    #         df = pd.read_csv(filename)
+    #         if 'units' not in df.columns:
+    #             df['units'] = 1
+    #         else:
+    #             df['units'] = df['units'].fillna(1).apply(lambda x: 1 if pd.isna(x) or x <= 0 else x)
+    #     except FileNotFoundError:
+    #         return "No entries found."
         
-        if trigger_id:
-            # Handling delete, increase, and decrease actions
-            if 'delete-button' in trigger_id:
-                button_index = json.loads(trigger_id.split('.')[0])['index']
-                df = df.drop(df.index[button_index])
-            elif 'unit-increase' in trigger_id or 'unit-decrease' in trigger_id:
-                button_index = json.loads(trigger_id.split('.')[0])['index']
-                increment = 1 if 'unit-increase' in trigger_id else -1
-                df.at[button_index, 'units'] = max(0, df.at[button_index, 'units'] + increment)
+    #     if trigger_id:
+    #         # Handling delete, increase, and decrease actions
+    #         if 'delete-button' in trigger_id:
+    #             button_index = json.loads(trigger_id.split('.')[0])['index']
+    #             df = df.drop(df.index[button_index])
+    #         elif 'unit-increase' in trigger_id or 'unit-decrease' in trigger_id:
+    #             button_index = json.loads(trigger_id.split('.')[0])['index']
+    #             increment = 1 if 'unit-increase' in trigger_id else -1
+    #             df.at[button_index, 'units'] = max(0, df.at[button_index, 'units'] + increment)
 
-        # Save and sort dataframe for all scenarios
-        df.to_csv(filename, index=False)
-        df = df.sort_values(by='time', ascending=False)
+    #     # Save and sort dataframe for all scenarios
+    #     df.to_csv(filename, index=False)
+    #     df = df.sort_values(by='time', ascending=False)
 
-        # Common operations for preparing feed layout
-        script_dir = os.path.dirname(__file__)
-        root_dir = os.path.dirname(script_dir)
-        images_folder = os.path.join(root_dir, 'images')
+    #     # Common operations for preparing feed layout
+    #     script_dir = os.path.dirname(__file__)
+    #     root_dir = os.path.dirname(script_dir)
+    #     images_folder = os.path.join(root_dir, 'images')
 
-        try:
-            selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
-        except ValueError:
-            selected_date = datetime.today().date()
+    #     try:
+    #         selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+    #     except ValueError:
+    #         selected_date = datetime.today().date()
 
-        feed_layout = create_daily_feed(df, images_folder, selected_date)
-        return feed_layout
+    #     feed_layout = create_daily_feed(df, images_folder, selected_date)
+    #     return feed_layout

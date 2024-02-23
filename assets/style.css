@@ -39,3 +39,14 @@ body {
     background-origin: border-box !important;
     background-clip: content-box, border-box !important;
 }
+
+
+/* SIDEBAR ICONS */
+
+.icon-container:hover .dash-iconify {
+    color: #005a34; /* Example hover color */
+}
+
+.icon-container {
+    cursor: pointer;
+}

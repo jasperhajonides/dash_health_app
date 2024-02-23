@@ -7,6 +7,7 @@ from dash import dcc
 
 from pages.nutrition import nutrition_page, register_callbacks_nutrition
 from pages.all_activities import all_activities_page, register_callbacks_all_activities
+from pages.daily_logbooks import register_callbacks_logbook
 # Import sidebar and pages
 from pages import (
     sidebar, 
@@ -55,6 +56,7 @@ home.register_callbacks(app)
 register_callbacks_all_activities(app)
 single_activity.register_callbacks(app)
 register_callbacks_nutrition(app)
+register_callbacks_logbook(app)
 
 # profile.register_callbacks(app)
 
