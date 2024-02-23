@@ -83,55 +83,32 @@ df_database = pd.read_excel(file_path, sheet_name='1.3 Proximates')
 # Get unique food names for dropdown suggestions
 food_names = df_database['Food Name'].dropna().unique().tolist()
 
-# Footer content
-footer = html.Div(
-    [
-        html.P(" ", style={'text-align': 'center'}),
-        # Add more content here as needed
-    ],
-    style={
-        'height': '300px',
-        'background-color': 'white',
-        'color': 'black',
-        'text-align': 'center',
-        'padding': '10px',
-    }
-)
+# # Footer content
+# footer = html.Div(
+#     [
+#         html.P(" ", style={'text-align': 'center'}),
+#         # Add more content here as needed
+#     ],
+#     style={
+#         'height': '300px',
+#         'background-color': 'white',
+#         'color': 'black',
+#         'text-align': 'center',
+#         'padding': '10px',
+#     }
+# )
 
-# define the 
-settings_offcanvas = generate_settings_offcanvas(
-    settings_offcanvas_id="settings-offcanvas"
-)
+# # define the 
+# settings_offcanvas = generate_settings_offcanvas(
+#     settings_offcanvas_id="settings-offcanvas"
+# )
 
 def nutrition_page():
 
 
     layout = html.Div([
 
-    dbc.Container([
-        html.Button(
-        children=[
-            di.DashIconify(icon="mdi:book-open-page-variant", width=30, height=30, style={"verticalAlign": "middle"}),
-            " Daily Overview"
-        ],
-        id="toggle-settings",
-        style={
-            "position": "fixed",
-            "bottom": "20px",
-            "left": "50%",
-            "transform": "translateX(-50%)",
-            "transition": "bottom 0.5s ease-out",
-            "zIndex": "1030",
-            "background": "linear-gradient(90deg, rgba(0,77,64,1) 0%, rgba(45,105,94,1) 100%)",
-            "border": "none",
-            "color": "white",
-            "padding": "10px 20px",
-            "borderRadius": "30px",
-            "cursor": "pointer"
-        }
-    ),
-        create_logbook_panel(),
-    ], style={"position": "relative", "padding": "2rem"}),
+    create_logbook_panel(),
 
     html.H2("Nutritional Information", className="text-center mb-3"),
 
