@@ -13,55 +13,93 @@ from pages.nutrition_page_parts.daily_overview import create_daily_feed
 
 
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv() # Load variables from .env
+
+
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+import dash_iconify as di
+import os
+
+custom_js = html.Script(src='/assets/datatable_logging.js')
 
 
 def create_daily_feed(df, images_folder, selected_date):
-    # Filter rows by the selected date and sort
-    df_filtered = df[df['date'] == selected_date.strftime('%Y-%m-%d')]
+    # Custom sort the DataFrame by 'meal_type'
+    meal_order = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Other']
+    df['meal_type'] = pd.Categorical(df['meal_type'], categories=meal_order, ordered=True)
+    df_sorted = df.sort_values(['meal_type', 'date'])
 
     table_header = html.Thead(
-    html.Tr([
-        html.Th("Quantity"),
-        html.Th("Image"),
-        html.Th("Name"),
-        html.Th("kcal"),
-        html.Th("Carbs (g)"),
-        html.Th("Fat (g)"),
-        html.Th("Protein (g)"),
-    ])
-)
+        html.Tr([
+            html.Th("Meal Type", style={'textAlign': 'center', 'fontWeight': 'bold', 'fontSize': '16px'}),
+            html.Th("Quantity"),
+            html.Th("Image"),
+            html.Th("Name"),
+            html.Th("kcal"),
+            html.Th("Carbs (g)"),
+            html.Th("Fat (g)"),
+            html.Th("Protein (g)"),
+        ])
+    )
 
-    # Generate table rows for each entry
     table_body_rows = []
-    for index, row in df_filtered.iterrows():
+    current_meal_type = None
+    for index, row in df_sorted.iterrows():
+        # Check if the meal type has changed
+        if row['meal_type'] != current_meal_type:
+            # Insert a header row for the new meal type
+            table_body_rows.append(html.Tr([
+                html.Td(row['meal_type'], colSpan="8", style={'fontWeight': 'bold', 'fontSize': '18px', 'textAlign': 'center', 'backgroundColor': '#e9ecef'}),
+            ]))
+            current_meal_type = row['meal_type']
+
+        # Insert row for the current entry
+        units = row.get('units', 1)
+        calories = row.get('calories', 'N/A') * units if row.get('calories', 'N/A') != 'N/A' else 'N/A'
+        carbohydrates = row.get('carbs', 'N/A') * units if row.get('carbs', 'N/A') != 'N/A' else 'N/A'
+        fat = row.get('fat', 'N/A') * units if row.get('fat', 'N/A') != 'N/A' else 'N/A'
+        protein = row.get('protein', 'N/A') * units if row.get('protein', 'N/A') != 'N/A' else 'N/A'
         image_filename = row.get('file_name', 'default_file_name.png')
-        image_path = os.path.join(images_folder, image_filename)
+        image_path = f"{images_folder}/{image_filename}"
 
         table_body_rows.append(html.Tr([
-            html.Td([
-                html.Button('-', id={'type': 'unit-decrease', 'index': index}, style={'width': '30px', 'height': '30px', 'border-radius': '15px', 
-                            'background-color': 'lightblue', 'border': 'none', 'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
-                            'margin-bottom': '5px'}),
-                html.Span(row.get('units', 1)),
-                html.Button('+', id={'type': 'unit-increase', 'index': index}, style={'width': '30px', 'height': '30px', 'border-radius': '15px', 
-                            'background-color': 'lightblue', 'border': 'none', 'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
-                            'margin-bottom': '5px'}),
-            ], className="quantity-cell"),
-            html.Td(di.DashIconify(icon="mdi:camera", width=24, height=24), className="image-icon-cell", id=f'image-icon-{index}'),
-            dbc.Tooltip(html.Img(src=image_path, style={'width': '100px'}), target=f'image-icon-{index}', placement="bottom"),
-            html.Td(row.get('name', 'Item Name')),
-            html.Td(row.get('calories', 'N/A')),
-            html.Td(row.get('carbs', 'N/A')),
-            html.Td(row.get('fat', 'N/A')),
-            html.Td(row.get('protein', 'N/A')),
+            html.Td([  # Include buttons for increasing or decreasing the unit count
+                html.Button('-', id={'type': 'unit-decrease', 'index': index}, 
+                            style={'width': '30px', 'height': '30px', 'border-radius': '15px', 
+                                'background-color': 'lightblue', 'border': 'none', 
+                                'box-shadow': '0 2px 4px rgba(0,0,0,0.2)', 'margin-right': '5px'}),
+                html.Span(f"{units:.1f}"),  # Display units rounded to one decimal point
+                html.Button('+', id={'type': 'unit-increase', 'index': index}, 
+                            style={'width': '30px', 'height': '30px', 'border-radius': '15px', 
+                                'background-color': 'lightblue', 'border': 'none', 
+                                'box-shadow': '0 2px 4px rgba(0,0,0,0.2)', 'margin-left': '5px'}),
+            ], style={'display': 'flex', 'justifyContent': 'center', 'alignItems': 'center'}),
+            html.Td(html.Img(src=image_path, style={'width': '50px', 'height': '50px'}), style={'textAlign': 'center'}),
+            html.Td(row['name']),
+            html.Td(f"{calories * units:.1f}" if calories != 'N/A' else 'N/A'),
+            html.Td(f"{carbohydrates * units:.1f} g" if carbohydrates != 'N/A' else 'N/A'),
+            html.Td(f"{fat * units:.1f} g" if fat != 'N/A' else 'N/A'),
+            html.Td(f"{protein * units:.1f} g" if protein != 'N/A' else 'N/A'),
         ]))
 
     table_body = html.Tbody(table_body_rows)
 
     # Combine header and body to create the table
-    table = dbc.Table([table_header, table_body], bordered=True, hover=True, responsive=True, className="mt-4")
+    scrollable_table_container = html.Div(
+        dbc.Table([table_header, table_body], bordered=False, hover=True, responsive=True, className="mt-4"),
+                    style={
+            'maxHeight': '400px',  # Adjust based on your needs
+            'overflowY': 'scroll',
+            'width': '100%',
+            'position': 'relative'
+        }
+    )
+    return scrollable_table_container
 
-    return table
 
 
 
@@ -164,19 +202,6 @@ def create_logbook_panel():
 def register_callbacks_logbook(app):
 
 
-
-    # @app.callback(
-    #     Output('daily-feed-table-container', 'children'),
-    #     [Input('selected-date', 'date'),
-    #     Input('refresh-entries-button', 'n_clicks')],  # If you want to refresh on button click as well
-    #     [State('selected-date', 'date')]
-    # )
-    # def update_daily_feed(selected_date_str, _, state_selected_date):
-    #     selected_date = datetime.strptime(selected_date_str or state_selected_date, '%Y-%m-%d')
-    #     df = pd.read_csv('data/nutrition_entries.csv')  # Adjust path as necessary
-    #     return create_daily_feed(df, '/assets/images', selected_date)
-
-
     @app.callback(
         Output('selected-date', 'date'),
         [
@@ -245,6 +270,8 @@ def register_callbacks_logbook(app):
 
                 # Save the updated DataFrame
                 df.to_csv('data/nutrition_entries.csv', index=False)
+
+                print(df[['calories','protein','units']])
                 
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {e}")

@@ -12,7 +12,6 @@ load_dotenv()
 # os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 # Try to get the OPENAI_API_KEY
 api_key = os.getenv("OPENAI_API_KEY")
-print(api_key)
 
 class NutritionExtraction:
     # Dictionary mapping detail levels to nutritional components
