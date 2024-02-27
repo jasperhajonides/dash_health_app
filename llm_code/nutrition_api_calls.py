@@ -174,6 +174,9 @@ class NutritionExtraction:
             response_format={ "type": "json_object"},
             )
         
+        # get response summary. 
+        self.summarise_llm_response()
+        
         print(' self.full_nutr_dict!!!!!!!!!',  self.full_nutr_dict)
         # now extract the nutritional data from the api call
         new_df, new_nutrition_dict = multiple_api_outputs_to_df(self.response, self.full_nutr_dict)
@@ -228,6 +231,10 @@ class NutritionExtraction:
             temperature=temperature,
 
         )
+
+        # get response summary. 
+        self.summarise_llm_response()
+
         # now extract the nutritional data from the api call
         new_df, new_nutrition_dict = multiple_api_outputs_to_df(self.response, self.full_nutr_dict)
         
@@ -247,3 +254,34 @@ class NutritionExtraction:
         self.find_missing_values()
 
         return self.nutrition_dict, self.missing_keys
+
+    def summarise_llm_response(self):
+        api_key = os.getenv("OPENAI_API_KEY")
+        client = OpenAI(api_key=api_key) 
+
+        response = client.chat.completions.create(
+        model="gpt-3.5-turbo-0125",
+        messages=[
+            {
+            "role": "system",
+            "content": """You are going to summarise nutritional description so that they know the extend of the message. 
+            The messages are from a large language model where we try to extract the nutritional contents from an image or description. 
+            Please summarise the prompt, focussing on all the contextual information apart form the nutritional values. 
+            You can of course include a summary of nutritional values but if you do you can only give relative values 
+            (e.g. more protein than fat). If the description is about an image mention this in the summary, 
+            or similarly if its a text descrition. Write a summary of around 50 words."""
+            },
+            {
+            "role": "user",
+            "content": f"Summarise: {self.response}"
+            }
+        ],
+        temperature=0.5,
+        max_tokens=256,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0
+        )
+
+        self.response_summary = response.choices[0].message.content
+

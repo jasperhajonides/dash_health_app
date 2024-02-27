@@ -461,7 +461,7 @@ def register_callbacks_nutrition(app):
                 prompts['image_text_prompt'] = prompts['image_text_prompt'] + f' The item in the picture is a {input_text}'
             json_nutrition_std, missing_keys = nutrition.openai_api_image(prompt = prompts['image_text_prompt'], image=stored_image_data, n=1)
             print(f'currently a couple of variables are missing {missing_keys}')
-            message = json_nutrition_std['llm_output']
+            message = nutrition.response_summary
 
         # # also add amino acids please:
         # if (ai_toggle_clicks % 2 == 1):
@@ -499,6 +499,62 @@ def register_callbacks_nutrition(app):
         return data
 
 
+    def adjust_nutritional_weight_values(json_entry, trigger, weight_input):
+            # Define keys to exclude from adjustments
+            EXCLUDED_KEYS = ['glycemic index', 'name', 'description', 'meal_type', 'units']
+
+            # Extract and validate weight from json_entry
+            json_weight = max(json_entry.get('weight', 100), 1)  # Ensure weight is at least 1
+            print(" max(json_entry.get('weight', 100), 1):::::::::::: ", json_weight)
+            # Determine weight_input based on the trigger
+            if 'submit-nutrition-data.n_clicks' in trigger:
+                weight_input = json_weight
+            else:
+                weight_input = weight_input if weight_input not in (None, dash.no_update) else json_weight
+            print('\n AFTER HTE IF STATEMENT ', weight_input)
+
+
+            # Calculate adjustment factor based on weight input
+            factor = weight_input / json_weight
+
+            print('\n\nFACTOR', factor)
+            # Dynamically adjust values based on factor, excluding specified keys
+            for key, value in json_entry.items():
+                if key not in EXCLUDED_KEYS and isinstance(value, (int, float)):
+                    json_entry[key] = value * factor
+            print("\n FINAL json_entry", json_entry)
+            return json_entry
+
+    # def adjust_nutritional_weight_values(json_entry, trigger, weight_input):
+    #     # Define keys to exclude from adjustments
+    #     EXCLUDED_KEYS = ['glycemic index', 'name', 'description', 'meal_type', 'units']
+
+
+    #      # Extract the weight from json_entry, use default if not present or zero
+    #     json_weight = json_entry.get('weight', 100)
+    #     if json_weight == 0:
+    #         json_weight = 100
+    #     default_weight = json_weight
+
+    #     # Determine weight_input based on the trigger
+    #     if 'submit-nutrition-data.n_clicks' in trigger:
+    #         weight_input = json_weight
+    #         default_weight = json_weight
+    #     elif weight_input is None or weight_input == dash.no_update:
+    #         # Maintain the existing weight_input value for other triggers
+    #         weight_input = json_weight
+    #         default_weight = json_weight
+
+    #     # Calculate adjustment factor based on weight input
+    #     factor = weight_input / default_weight
+
+    #     # Dynamically adjust values based on factor, excluding specified keys
+    #     for key, value in json_entry.items():
+    #         if key not in EXCLUDED_KEYS and isinstance(value, (int, float)):
+    #             json_entry[key] = value * factor
+
+    #     return json_entry
+
 
     @app.callback(
         [Output('dynamic-nutritional-values', 'children'),
@@ -523,44 +579,45 @@ def register_callbacks_nutrition(app):
         # Determine which input triggered the callback
         trigger = ctx.triggered[0]['prop_id']
 
+        json_entry = adjust_nutritional_weight_values(json_entry, trigger, weight_input)
 
-        # Extract the weight from json_entry, use default if not present or zero
-        json_weight = json_entry.get('weight', 100)
-        if json_weight == 0:
-            json_weight = 100
-        default_weight = json_weight
+        # # Extract the weight from json_entry, use default if not present or zero
+        # json_weight = json_entry.get('weight', 100)
+        # if json_weight == 0:
+        #     json_weight = 100
+        # default_weight = json_weight
 
-        # Update weight_input to json_entry weight when submit-nutrition-data button is clicked
-        if 'submit-nutrition-data.n_clicks' in trigger:
-            weight_input = json_weight
-            default_weight = json_weight
-        elif weight_input is None or weight_input == dash.no_update:
-            # Maintain the existing weight_input value for other triggers
-            weight_input = json_weight
-            default_weight = json_weight
-
-
-        # Adjust the values based on the input weight
-        factor = weight_input / default_weight
+        # # Update weight_input to json_entry weight when submit-nutrition-data button is clicked
+        # if 'submit-nutrition-data.n_clicks' in trigger:
+        #     weight_input = json_weight
+        #     default_weight = json_weight
+        # elif weight_input is None or weight_input == dash.no_update:
+        #     # Maintain the existing weight_input value for other triggers
+        #     weight_input = json_weight
+        #     default_weight = json_weight
 
 
-        # adapt the weight of these items.
-        essential_amino_acids = [
-            "histidine",
-            "isoleucine",
-            "leucine",
-            "lysine",
-            "methionine",
-            "phenylalanine",
-            "threonine",
-            "tryptophan",
-            "valine"
-        ]
-        columns_to_adjust = ['calories','carbohydrates','protein','fat',
-                             'fiber','sugar','unsaturated fat','saturated fat','weight'] + essential_amino_acids
-        for entry in columns_to_adjust:
-            if entry in json_entry:
-                json_entry[entry] = json_entry[entry]*factor
+        # # Adjust the values based on the input weight
+        # factor = weight_input / default_weight
+
+
+        # # adapt the weight of these items.
+        # essential_amino_acids = [
+        #     "histidine",
+        #     "isoleucine",
+        #     "leucine",
+        #     "lysine",
+        #     "methionine",
+        #     "phenylalanine",
+        #     "threonine",
+        #     "tryptophan",
+        #     "valine"
+        # ]
+        # columns_to_adjust = ['calories','carbohydrates','protein','fat',
+        #                      'fiber','sugar','unsaturated fat','saturated fat','weight'] + essential_amino_acids
+        # for entry in columns_to_adjust:
+        #     if entry in json_entry:
+        #         json_entry[entry] = json_entry[entry]*factor
 
 
         # Check if the submit button was clicked
@@ -572,7 +629,7 @@ def register_callbacks_nutrition(app):
                 return "No nutritional data to add."
 
             # now save the csv
-            filename = 'data/nutrition_entries.csv'
+            filename = 'data/nutrition_entries.csv' 
             now = datetime.now()
 
             # Convert JSON to DataFrame
@@ -604,8 +661,6 @@ def register_callbacks_nutrition(app):
             # Save updated data
             df.to_csv(filename, index=False)
 
-
-
         # Default to 'Other' if no meal type is selected
         meal_type = meal_type if meal_type else 'Other'
         if not submission_state['submitted']:
@@ -616,7 +671,7 @@ def register_callbacks_nutrition(app):
             # Call collate_current_item function
         
 
-        if ('protein' not in json_entry) and ('fat' not in json_entry) and ('valine' not in json_entry):
+        if ('protein' not in json_entry) and ('carbohydrates' not in json_entry) and ('fat' not in json_entry) and ('calories' not in json_entry):
             return dash.no_update, dash.no_update
         
 
