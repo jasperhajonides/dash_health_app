@@ -1,3 +1,8 @@
+[![pipeline status](https://gitlab.com/jasperhajonides/dash_health_app/badges/main/pipeline.svg)](https://gitlab.com/jasperhajonides/dash_health_app/-/pipelines)
+
+[![coverage report](https://gitlab.com/jasperhajonides/dash_health_app/badges/main/coverage.svg)](https://gitlab.com/jasperhajonides/dash_health_app/-/commits/main)
+
+
 # Dash Health App
 
 ## Project Overview
