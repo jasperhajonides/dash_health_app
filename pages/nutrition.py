@@ -139,8 +139,21 @@ def nutrition_page():
 
 # Combined input bar with '✨' AI-toggle, camera icon, and submit button
     html.Div([
+
     dbc.InputGroup([
-        dbc.Button("✨", id='ai-toggle', n_clicks=1, color="light", style={'borderRadius': '50px 0 0 50px', 'backgroundColor': 'lightblue'}),
+
+    # Replace dbc.Button with daq.BooleanSwitch for AI Toggle
+        html.Div([
+            daq.BooleanSwitch(
+                id='ai-toggle',
+                on=False,  # Initially set to False, representing AI mode is OFF
+                color="#00D8CC",  # Turquoise color when switched ON
+                style={'display': 'block', 'margin': '10px auto'}  # Centering the switch
+            ),
+
+            # Your other input components...
+        ]),
+
         dcc.Upload(
             id='upload-image',
             children=dbc.Button("📷", id='upload-trigger', color="light", style={'borderRadius': '0'}),
@@ -302,17 +315,17 @@ def register_callbacks_nutrition(app):
     @app.callback(
         [Output('nutritional-text-input', 'style'),
         Output('food-names-input', 'style')],
-        [Input('ai-toggle', 'n_clicks')],
-        # prevent_initial_call=True
+        [Input('ai-toggle', 'on')]  # Listen to the 'on' property of the BooleanSwitch
     )
-    def toggle_input_mode(n_clicks):
-        """ switch between lookup to LLM """
-        if n_clicks % 2 == 0:
-            # AI mode is OFF: Show food names input
-            return {'display': 'none'}, {'display': 'block'}
-        else:
-            # AI mode is ON: Show custom text input
+    def toggle_input_mode(ai_mode_on):
+        """Switch between lookup to LLM based on AI toggle switch."""
+        if ai_mode_on:
+            # AI mode is ON: Show custom text input for AI mode
             return {'display': 'block'}, {'display': 'none'}
+        else:
+            # AI mode is OFF: Show food names input for search mode
+            return {'display': 'none'}, {'display': 'block'}
+
 
     # Callback to update options based on search input
     @app.callback(
@@ -405,12 +418,13 @@ def register_callbacks_nutrition(app):
             Output('response-text-output', 'children')
         ],
         [Input('submit-nutrition-data', 'n_clicks'),
-         Input({'type': 'suggestion-item', 'index': ALL}, 'n_clicks')],
+        Input({'type': 'suggestion-item', 'index': ALL}, 'n_clicks')],
         [State('stored-image', 'data'), 
         State('nutritional-text-input', 'value'),
-        State('ai-toggle', 'n_clicks')]
+        State('ai-toggle', 'on')]  # Use 'on' instead of 'n_clicks'
     )
-    def store_json_from_image(n_clicks, n_clicks_row, stored_image_data, input_text, ai_toggle_clicks):
+    def store_json_from_image(n_clicks, n_clicks_row, stored_image_data, input_text, ai_toggle_on):
+
         """
         ___________               .___
         \_   _____/___   ____   __| _/
@@ -432,7 +446,7 @@ def register_callbacks_nutrition(app):
         #     return dash.no_update, dash.no_update, dash.no_update
         
         # Check AI Toggle state
-        if (ai_toggle_clicks % 2 == 0) & ('suggestion-item' in triggered_id):  # AI mode is OFF
+        if (ai_toggle_on is False) & ('suggestion-item' in triggered_id):  # AI mode is OFF
 
             selected_id = triggered_id
             selected_name = json.loads(selected_id)['index']
@@ -734,7 +748,6 @@ def register_callbacks_nutrition(app):
 
         # No image uploaded
         return "No image uploaded", {'display': 'none'}, None
-
 
 
 
