@@ -1,0 +1,21 @@
+build:
+  stage: build
+  image: python:3.10.13
+  script:
+    - pip install -r requirements.txt
+    - python setup.py bdist_egg bdist_wheel
+  artifacts:
+    paths:
+      - dist/
+
+coverage:
+  stage: pre-deploy
+  image: python:3.10.13 
+  script:
+    - pip install -r requirements.txt  # Ensures coverage is installed; could also just install pytest and coverage if preferred
+    - coverage run -m pytest
+    - coverage report
+    - coverage html
+  artifacts:
+    paths:
+      - htmlcov/
