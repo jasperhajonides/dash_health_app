@@ -20,6 +20,8 @@ def format_value(value, format_str='{:.2f}'):
 def collate_current_item(json_entry, 
                          weight_input, meal_type):
 
+    body_weight_kg = 70
+
     print(json_entry)
     print('PUTTING TOGETHER CURRENT ITEM',json_entry )
     essential_amino_acids = [
@@ -77,8 +79,8 @@ def collate_current_item(json_entry,
         "pantothenic acid (b5)": 5 # mg
     }
 
-    # Convert from grams to milligrams
-    recommended_intakes_mg = {key: value * 70 for key, value in recommended_intakes.items()}
+    # Convert from grams to milligrams 
+    recommended_intakes_mg = {key: value * body_weight_kg for key, value in recommended_intakes.items()}
 
     def create_stacked_amino_acid_plot(json_entry, recommended_intakes_mg):
         amino_acid_names = list(recommended_intakes_mg.keys())
@@ -129,12 +131,6 @@ def collate_current_item(json_entry,
         )
         
         return fig
-
-
-
-
-
-
 
 
 
@@ -193,7 +189,7 @@ def collate_current_item(json_entry,
     ]
 
     # Parents for each segment
-    parents = [ "Calories", "Calories", "Calories",
+    parents = [ None, None, None,
         "Carbohydrates", "Carbohydrates", "Total Fat", "Total Fat", "Total Fat",
         "Protein", "Protein", "Protein",
         "Sugar", "Sugar", "Sugar", "Sugar",

@@ -10,7 +10,8 @@ import dash
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
-from dash_iconify import DashIconify
+
+import dash_iconify as di
 
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
@@ -36,6 +37,8 @@ from pages.nutrition_page_parts.current_item import collate_current_item
 from pages.nutrition_page_parts.daily_overview import create_daily_feed
 from pages.nutrition_page_parts.sample_food_item import *
 from pages.history_ui import generate_settings_offcanvas
+from pages.daily_logbooks import create_logbook_panel
+
 
 # Function to parse the contents of the uploaded file
 def parse_contents(contents):
@@ -80,40 +83,32 @@ df_database = pd.read_excel(file_path, sheet_name='1.3 Proximates')
 # Get unique food names for dropdown suggestions
 food_names = df_database['Food Name'].dropna().unique().tolist()
 
-# Footer content
-footer = html.Div(
-    [
-        html.P(" ", style={'text-align': 'center'}),
-        # Add more content here as needed
-    ],
-    style={
-        'height': '300px',
-        'background-color': 'white',
-        'color': 'black',
-        'text-align': 'center',
-        'padding': '10px',
-    }
-)
+# # Footer content
+# footer = html.Div(
+#     [
+#         html.P(" ", style={'text-align': 'center'}),
+#         # Add more content here as needed
+#     ],
+#     style={
+#         'height': '300px',
+#         'background-color': 'white',
+#         'color': 'black',
+#         'text-align': 'center',
+#         'padding': '10px',
+#     }
+# )
 
-# define the 
-settings_offcanvas = generate_settings_offcanvas(
-    settings_offcanvas_id="settings-offcanvas"
-)
+# # define the 
+# settings_offcanvas = generate_settings_offcanvas(
+#     settings_offcanvas_id="settings-offcanvas"
+# )
 
 def nutrition_page():
 
+
     layout = html.Div([
 
-    settings_offcanvas,
-    dmc.Button(
-        DashIconify(icon="octicon:gear-16"),
-        id="settings-button",
-        variant="gradient",
-        gradient={"from": "#004D40", "to": "#2d695e"},
-        radius="xl",
-        style={"position": "absolute", "top": "10px", "right": "10px"},
-        # compact=True,
-    ),
+    create_logbook_panel(),
 
     html.H2("Nutritional Information", className="text-center mb-3"),
 
@@ -144,8 +139,21 @@ def nutrition_page():
 
 # Combined input bar with '✨' AI-toggle, camera icon, and submit button
     html.Div([
+
     dbc.InputGroup([
-        dbc.Button("✨", id='ai-toggle', n_clicks=1, color="light", style={'borderRadius': '50px 0 0 50px', 'backgroundColor': 'lightblue'}),
+
+    # Replace dbc.Button with daq.BooleanSwitch for AI Toggle
+        html.Div([
+            daq.BooleanSwitch(
+                id='ai-toggle',
+                on=False,  # Initially set to False, representing AI mode is OFF
+                color="#00D8CC",  # Turquoise color when switched ON
+                style={'display': 'block', 'margin': '10px auto'}  # Centering the switch
+            ),
+
+            # Your other input components...
+        ]),
+
         dcc.Upload(
             id='upload-image',
             children=dbc.Button("📷", id='upload-trigger', color="light", style={'borderRadius': '0'}),
@@ -240,31 +248,31 @@ def nutrition_page():
     ], style={'display': 'flex', 'justify-content': 'center', 'width': '100%', 'lineHeight': '34px'}),
 
     ################# daily feed  ################
-    html.H2('Daily feed'),
-    html.Div([
-        # Left arrow button
-        html.Button('←', id='prev-day-button', 
-                    style={'display': 'inline-block', 'background-color': 'white', 'border': '1px solid darkgrey'}),
+    # html.H2('Daily feed'),
+    # html.Div([
+    #     # Left arrow button
+    #     html.Button('←', id='prev-day-button', 
+    #                 style={'display': 'inline-block', 'background-color': 'white', 'border': '1px solid darkgrey'}),
         
-        # Date picker
-        dcc.DatePickerSingle(
-            id='selected-date',
-            date=datetime.today().date(),
-            style={'display': 'inline-block'}
-        ),
+    #     # Date picker
+    #     dcc.DatePickerSingle(
+    #         id='selected-date',
+    #         date=datetime.today().date(),
+    #         style={'display': 'inline-block'}
+    #     ),
 
-        # Right arrow button
-        html.Button('→', id='next-day-button', 
-                    style={'display': 'inline-block', 'background-color': 'white', 'border': '1px solid darkgrey'}),
-    ], style={'textAlign': 'center', 'padding': '10px'}),
+    #     # Right arrow button
+    #     html.Button('→', id='next-day-button', 
+    #                 style={'display': 'inline-block', 'background-color': 'white', 'border': '1px solid darkgrey'}),
+    # ], style={'textAlign': 'center', 'padding': '10px'}),
 
-    # show the previous entries (today)
+    # # show the previous entries (today)
 
-    html.Div([dbc.Button('Show Entries', id='refresh-entries-button', color="primary", className="mb-3")
-            ], style={'text-align': 'center', 'padding-top': '24px'}),
+    # html.Div([dbc.Button('Show Entries', id='refresh-entries-button', color="primary", className="mb-3")
+    #         ], style={'text-align': 'center', 'padding-top': '24px'}),
 
-    html.Div(id='recent-entries-container'),
-    footer,
+    # html.Div(id='recent-entries-container'),
+    # footer,
 
 
     
@@ -275,33 +283,49 @@ def nutrition_page():
 
 def register_callbacks_nutrition(app):
 
-    # Callback to toggle settings offcanvas
     @app.callback(
-        Output("settings-offcanvas", "is_open", allow_duplicate=True),
-        Input("settings-button", "n_clicks"),
-        State("settings-offcanvas", "is_open"),
-        prevent_initial_call=True,
+        [
+            Output("settings-panel", "style"),
+            Output("toggle-settings", "style")
+        ],
+        [Input("toggle-settings", "n_clicks")],
+        [
+            State("settings-panel", "style"),
+            State("toggle-settings", "style")
+        ],
     )
-    def toggle_settings_offcanvas(n, is_open):
-        if n:
-            return not is_open
-        return is_open
+    def toggle_settings_panel(n_clicks, panel_style, button_style):
+        if n_clicks:
+            if panel_style["bottom"] == "0%":
+                # Panel is open; move it to "closed" state, leaving a small part visible
+                panel_style["bottom"] = "-45%"  # Adjust as needed
+                button_style["bottom"] = "2.5%"  # Adjust to align with the visible part of the panel
+            else:
+                # Panel is "closed"; open it fully, but ensure it slides just below half the button
+                panel_style["bottom"] = "0%"
+                button_style["bottom"] = "47.5%"  # Adjust so the panel goes slightly under the button
+            return panel_style, button_style
+        return panel_style, button_style
+
+
+
+
 
     # Callback to toggle AI mode and switch between text input and dropdown
     @app.callback(
         [Output('nutritional-text-input', 'style'),
         Output('food-names-input', 'style')],
-        [Input('ai-toggle', 'n_clicks')],
-        # prevent_initial_call=True
+        [Input('ai-toggle', 'on')]  # Listen to the 'on' property of the BooleanSwitch
     )
-    def toggle_input_mode(n_clicks):
-        """ switch between lookup to LLM """
-        if n_clicks % 2 == 0:
-            # AI mode is OFF: Show food names input
-            return {'display': 'none'}, {'display': 'block'}
-        else:
-            # AI mode is ON: Show custom text input
+    def toggle_input_mode(ai_mode_on):
+        """Switch between lookup to LLM based on AI toggle switch."""
+        if ai_mode_on:
+            # AI mode is ON: Show custom text input for AI mode
             return {'display': 'block'}, {'display': 'none'}
+        else:
+            # AI mode is OFF: Show food names input for search mode
+            return {'display': 'none'}, {'display': 'block'}
+
 
     # Callback to update options based on search input
     @app.callback(
@@ -394,12 +418,13 @@ def register_callbacks_nutrition(app):
             Output('response-text-output', 'children')
         ],
         [Input('submit-nutrition-data', 'n_clicks'),
-         Input({'type': 'suggestion-item', 'index': ALL}, 'n_clicks')],
+        Input({'type': 'suggestion-item', 'index': ALL}, 'n_clicks')],
         [State('stored-image', 'data'), 
         State('nutritional-text-input', 'value'),
-        State('ai-toggle', 'n_clicks')]
+        State('ai-toggle', 'on')]  # Use 'on' instead of 'n_clicks'
     )
-    def store_json_from_image(n_clicks, n_clicks_row, stored_image_data, input_text, ai_toggle_clicks):
+    def store_json_from_image(n_clicks, n_clicks_row, stored_image_data, input_text, ai_toggle_on):
+
         """
         ___________               .___
         \_   _____/___   ____   __| _/
@@ -421,7 +446,7 @@ def register_callbacks_nutrition(app):
         #     return dash.no_update, dash.no_update, dash.no_update
         
         # Check AI Toggle state
-        if (ai_toggle_clicks % 2 == 0) & ('suggestion-item' in triggered_id):  # AI mode is OFF
+        if (ai_toggle_on is False) & ('suggestion-item' in triggered_id):  # AI mode is OFF
 
             selected_id = triggered_id
             selected_name = json.loads(selected_id)['index']
@@ -450,7 +475,7 @@ def register_callbacks_nutrition(app):
                 prompts['image_text_prompt'] = prompts['image_text_prompt'] + f' The item in the picture is a {input_text}'
             json_nutrition_std, missing_keys = nutrition.openai_api_image(prompt = prompts['image_text_prompt'], image=stored_image_data, n=1)
             print(f'currently a couple of variables are missing {missing_keys}')
-            message = json_nutrition_std['llm_output']
+            message = nutrition.response_summary
 
         # # also add amino acids please:
         # if (ai_toggle_clicks % 2 == 1):
@@ -488,6 +513,62 @@ def register_callbacks_nutrition(app):
         return data
 
 
+    def adjust_nutritional_weight_values(json_entry, trigger, weight_input):
+            # Define keys to exclude from adjustments
+            EXCLUDED_KEYS = ['glycemic index', 'name', 'description', 'meal_type', 'units']
+
+            # Extract and validate weight from json_entry
+            json_weight = max(json_entry.get('weight', 100), 1)  # Ensure weight is at least 1
+            print(" max(json_entry.get('weight', 100), 1):::::::::::: ", json_weight)
+            # Determine weight_input based on the trigger
+            if 'submit-nutrition-data.n_clicks' in trigger:
+                weight_input = json_weight
+            else:
+                weight_input = weight_input if weight_input not in (None, dash.no_update) else json_weight
+            print('\n AFTER HTE IF STATEMENT ', weight_input)
+
+
+            # Calculate adjustment factor based on weight input
+            factor = weight_input / json_weight
+
+            print('\n\nFACTOR', factor)
+            # Dynamically adjust values based on factor, excluding specified keys
+            for key, value in json_entry.items():
+                if key not in EXCLUDED_KEYS and isinstance(value, (int, float)):
+                    json_entry[key] = value * factor
+            print("\n FINAL json_entry", json_entry)
+            return json_entry
+
+    # def adjust_nutritional_weight_values(json_entry, trigger, weight_input):
+    #     # Define keys to exclude from adjustments
+    #     EXCLUDED_KEYS = ['glycemic index', 'name', 'description', 'meal_type', 'units']
+
+
+    #      # Extract the weight from json_entry, use default if not present or zero
+    #     json_weight = json_entry.get('weight', 100)
+    #     if json_weight == 0:
+    #         json_weight = 100
+    #     default_weight = json_weight
+
+    #     # Determine weight_input based on the trigger
+    #     if 'submit-nutrition-data.n_clicks' in trigger:
+    #         weight_input = json_weight
+    #         default_weight = json_weight
+    #     elif weight_input is None or weight_input == dash.no_update:
+    #         # Maintain the existing weight_input value for other triggers
+    #         weight_input = json_weight
+    #         default_weight = json_weight
+
+    #     # Calculate adjustment factor based on weight input
+    #     factor = weight_input / default_weight
+
+    #     # Dynamically adjust values based on factor, excluding specified keys
+    #     for key, value in json_entry.items():
+    #         if key not in EXCLUDED_KEYS and isinstance(value, (int, float)):
+    #             json_entry[key] = value * factor
+
+    #     return json_entry
+
 
     @app.callback(
         [Output('dynamic-nutritional-values', 'children'),
@@ -512,44 +593,45 @@ def register_callbacks_nutrition(app):
         # Determine which input triggered the callback
         trigger = ctx.triggered[0]['prop_id']
 
+        json_entry = adjust_nutritional_weight_values(json_entry, trigger, weight_input)
 
-        # Extract the weight from json_entry, use default if not present or zero
-        json_weight = json_entry.get('weight', 100)
-        if json_weight == 0:
-            json_weight = 100
-        default_weight = json_weight
+        # # Extract the weight from json_entry, use default if not present or zero
+        # json_weight = json_entry.get('weight', 100)
+        # if json_weight == 0:
+        #     json_weight = 100
+        # default_weight = json_weight
 
-        # Update weight_input to json_entry weight when submit-nutrition-data button is clicked
-        if 'submit-nutrition-data.n_clicks' in trigger:
-            weight_input = json_weight
-            default_weight = json_weight
-        elif weight_input is None or weight_input == dash.no_update:
-            # Maintain the existing weight_input value for other triggers
-            weight_input = json_weight
-            default_weight = json_weight
-
-
-        # Adjust the values based on the input weight
-        factor = weight_input / default_weight
+        # # Update weight_input to json_entry weight when submit-nutrition-data button is clicked
+        # if 'submit-nutrition-data.n_clicks' in trigger:
+        #     weight_input = json_weight
+        #     default_weight = json_weight
+        # elif weight_input is None or weight_input == dash.no_update:
+        #     # Maintain the existing weight_input value for other triggers
+        #     weight_input = json_weight
+        #     default_weight = json_weight
 
 
-        # adapt the weight of these items.
-        essential_amino_acids = [
-            "histidine",
-            "isoleucine",
-            "leucine",
-            "lysine",
-            "methionine",
-            "phenylalanine",
-            "threonine",
-            "tryptophan",
-            "valine"
-        ]
-        columns_to_adjust = ['calories','carbohydrates','protein','fat',
-                             'fiber','sugar','unsaturated fat','saturated fat','weight'] + essential_amino_acids
-        for entry in columns_to_adjust:
-            if entry in json_entry:
-                json_entry[entry] = json_entry[entry]*factor
+        # # Adjust the values based on the input weight
+        # factor = weight_input / default_weight
+
+
+        # # adapt the weight of these items.
+        # essential_amino_acids = [
+        #     "histidine",
+        #     "isoleucine",
+        #     "leucine",
+        #     "lysine",
+        #     "methionine",
+        #     "phenylalanine",
+        #     "threonine",
+        #     "tryptophan",
+        #     "valine"
+        # ]
+        # columns_to_adjust = ['calories','carbohydrates','protein','fat',
+        #                      'fiber','sugar','unsaturated fat','saturated fat','weight'] + essential_amino_acids
+        # for entry in columns_to_adjust:
+        #     if entry in json_entry:
+        #         json_entry[entry] = json_entry[entry]*factor
 
 
         # Check if the submit button was clicked
@@ -561,7 +643,7 @@ def register_callbacks_nutrition(app):
                 return "No nutritional data to add."
 
             # now save the csv
-            filename = 'data/nutrition_entries.csv'
+            filename = 'data/nutrition_entries.csv' 
             now = datetime.now()
 
             # Convert JSON to DataFrame
@@ -593,8 +675,6 @@ def register_callbacks_nutrition(app):
             # Save updated data
             df.to_csv(filename, index=False)
 
-
-
         # Default to 'Other' if no meal type is selected
         meal_type = meal_type if meal_type else 'Other'
         if not submission_state['submitted']:
@@ -605,7 +685,7 @@ def register_callbacks_nutrition(app):
             # Call collate_current_item function
         
 
-        if ('protein' not in json_entry) and ('fat' not in json_entry) and ('valine' not in json_entry):
+        if ('protein' not in json_entry) and ('carbohydrates' not in json_entry) and ('fat' not in json_entry) and ('calories' not in json_entry):
             return dash.no_update, dash.no_update
         
 
@@ -671,7 +751,6 @@ def register_callbacks_nutrition(app):
 
 
 
-
     @app.callback(
         [Output('carousel-content', 'children'),
         Output('carousel-index-store', 'data')],
@@ -702,88 +781,88 @@ def register_callbacks_nutrition(app):
             return carousel_items[current_index](), {'index': current_index}
 
 
-    @app.callback(
-        Output('selected-date', 'date'),
-        [
-            Input('prev-day-button', 'n_clicks'),
-            Input('next-day-button', 'n_clicks'),
-            Input('selected-date', 'date'),
-        ],
-        [State('selected-date', 'date')]
-    )
-    def change_date(prev_clicks, next_clicks, selected_date, current_date):
-        ctx = dash.callback_context
+    # @app.callback(
+    #     Output('selected-date', 'date'),
+    #     [
+    #         Input('prev-day-button', 'n_clicks'),
+    #         Input('next-day-button', 'n_clicks'),
+    #         Input('selected-date', 'date'),
+    #     ],
+    #     [State('selected-date', 'date')]
+    # )
+    # def change_date(prev_clicks, next_clicks, selected_date, current_date):
+    #     ctx = dash.callback_context
 
-        # Check which button was clicked
-        if not ctx.triggered:
-            raise dash.exceptions.PreventUpdate
+    #     # Check which button was clicked
+    #     if not ctx.triggered:
+    #         raise dash.exceptions.PreventUpdate
 
-        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    #     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-        # Calculate the new date
-        date = datetime.strptime(current_date, '%Y-%m-%d').date()
-        if button_id == 'prev-day-button':
-            new_date = date - timedelta(days=1)
-        elif button_id == 'next-day-button':
-            new_date = date + timedelta(days=1)
-        else:
-            raise dash.exceptions.PreventUpdate
+    #     # Calculate the new date
+    #     date = datetime.strptime(current_date, '%Y-%m-%d').date()
+    #     if button_id == 'prev-day-button':
+    #         new_date = date - timedelta(days=1)
+    #     elif button_id == 'next-day-button':
+    #         new_date = date + timedelta(days=1)
+    #     else:
+    #         raise dash.exceptions.PreventUpdate
 
-        return new_date.strftime('%Y-%m-%d')
+    #     return new_date.strftime('%Y-%m-%d')
 
 
 
-    @app.callback(
-        Output('recent-entries-container', 'children'),
-        [
-            Input('submit-nutrition-data', 'n_clicks'),
-            Input('refresh-entries-button', 'n_clicks'),
-            Input({'type': 'delete-button', 'index': ALL}, 'n_clicks'),
-            Input({'type': 'unit-increase', 'index': ALL}, 'n_clicks'),
-            Input({'type': 'unit-decrease', 'index': ALL}, 'n_clicks'),
-            Input('update-trigger', 'data'),
-            Input('selected-date', 'date'),
-            Input('add-to-csv-button', 'n_clicks')
-        ],
-    )
-    def update_entries(submit_clicks, refresh_clicks, delete_clicks, increase_clicks, decrease_clicks, update_trigger, selected_date_str, add_clicks):
-        ctx = dash.callback_context
-        trigger_id = ctx.triggered[0]['prop_id'] if ctx.triggered else None
+    # @app.callback(
+    #     Output('recent-entries-container', 'children'),
+    #     [
+    #         Input('submit-nutrition-data', 'n_clicks'),
+    #         Input('refresh-entries-button', 'n_clicks'),
+    #         Input({'type': 'delete-button', 'index': ALL}, 'n_clicks'),
+    #         Input({'type': 'unit-increase', 'index': ALL}, 'n_clicks'),
+    #         Input({'type': 'unit-decrease', 'index': ALL}, 'n_clicks'),
+    #         Input('update-trigger', 'data'),
+    #         Input('selected-date', 'date'),
+    #         Input('add-to-csv-button', 'n_clicks')
+    #     ],
+    # )
+    # def update_entries(submit_clicks, refresh_clicks, delete_clicks, increase_clicks, decrease_clicks, update_trigger, selected_date_str, add_clicks):
+    #     ctx = dash.callback_context
+    #     trigger_id = ctx.triggered[0]['prop_id'] if ctx.triggered else None
 
-        # Always read the CSV file when the callback is triggered
-        filename = 'data/nutrition_entries.csv'
-        try:
-            df = pd.read_csv(filename)
-            if 'units' not in df.columns:
-                df['units'] = 1
-            else:
-                df['units'] = df['units'].fillna(1).apply(lambda x: 1 if pd.isna(x) or x <= 0 else x)
-        except FileNotFoundError:
-            return "No entries found."
+    #     # Always read the CSV file when the callback is triggered
+    #     filename = 'data/nutrition_entries.csv'
+    #     try:
+    #         df = pd.read_csv(filename)
+    #         if 'units' not in df.columns:
+    #             df['units'] = 1
+    #         else:
+    #             df['units'] = df['units'].fillna(1).apply(lambda x: 1 if pd.isna(x) or x <= 0 else x)
+    #     except FileNotFoundError:
+    #         return "No entries found."
         
-        if trigger_id:
-            # Handling delete, increase, and decrease actions
-            if 'delete-button' in trigger_id:
-                button_index = json.loads(trigger_id.split('.')[0])['index']
-                df = df.drop(df.index[button_index])
-            elif 'unit-increase' in trigger_id or 'unit-decrease' in trigger_id:
-                button_index = json.loads(trigger_id.split('.')[0])['index']
-                increment = 1 if 'unit-increase' in trigger_id else -1
-                df.at[button_index, 'units'] = max(0, df.at[button_index, 'units'] + increment)
+    #     if trigger_id:
+    #         # Handling delete, increase, and decrease actions
+    #         if 'delete-button' in trigger_id:
+    #             button_index = json.loads(trigger_id.split('.')[0])['index']
+    #             df = df.drop(df.index[button_index])
+    #         elif 'unit-increase' in trigger_id or 'unit-decrease' in trigger_id:
+    #             button_index = json.loads(trigger_id.split('.')[0])['index']
+    #             increment = 1 if 'unit-increase' in trigger_id else -1
+    #             df.at[button_index, 'units'] = max(0, df.at[button_index, 'units'] + increment)
 
-        # Save and sort dataframe for all scenarios
-        df.to_csv(filename, index=False)
-        df = df.sort_values(by='time', ascending=False)
+    #     # Save and sort dataframe for all scenarios
+    #     df.to_csv(filename, index=False)
+    #     df = df.sort_values(by='time', ascending=False)
 
-        # Common operations for preparing feed layout
-        script_dir = os.path.dirname(__file__)
-        root_dir = os.path.dirname(script_dir)
-        images_folder = os.path.join(root_dir, 'images')
+    #     # Common operations for preparing feed layout
+    #     script_dir = os.path.dirname(__file__)
+    #     root_dir = os.path.dirname(script_dir)
+    #     images_folder = os.path.join(root_dir, 'images')
 
-        try:
-            selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
-        except ValueError:
-            selected_date = datetime.today().date()
+    #     try:
+    #         selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+    #     except ValueError:
+    #         selected_date = datetime.today().date()
 
-        feed_layout = create_daily_feed(df, images_folder, selected_date)
-        return feed_layout
+    #     feed_layout = create_daily_feed(df, images_folder, selected_date)
+    #     return feed_layout
