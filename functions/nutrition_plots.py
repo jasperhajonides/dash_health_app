@@ -8,6 +8,8 @@ from dash import html
 from datetime import datetime, timedelta, time
 import dash_daq as daq
 
+from functions.nutrition_df_helper_functions import load_and_filter_df
+
 def create_nutrient_pie_chart():
     try:
         # Get the current script directory (functions/nutrition_plots.py)
@@ -95,7 +97,7 @@ def create_calories_line_plot():
 
 
 
-def calculate_todays_nutrition():
+def calculate_todays_nutrition(df):
     try:
 
          # Get the current script directory (functions/nutrition_plots.py)
@@ -103,19 +105,19 @@ def calculate_todays_nutrition():
         root_dir = os.path.dirname(current_script_dir)
         csv_path = os.path.join(root_dir, 'data', 'nutrition_entries.csv')
 
-        df = pd.read_csv(csv_path)
-        df['date'] = pd.to_datetime(df['date'])
-        today = datetime.now().date()
+        # df = pd.read_csv(csv_path)
+        # df['date'] = pd.to_datetime(df['date'])
+        # today = datetime.now().date()
 
         # Filter for today's entries
-        df_today = df[df['date'].dt.date == today]
+        # df_today = df[df['date'].dt.date == today]
 
         # Calculate the sums
-        protein_today = df_today['protein'].sum()
-        fat_today = df_today['fat'].sum()
-        calories_today = df_today['calories'].sum()
-        carbs_today = df_today['carbohydrates'].sum()
-        sugar_today = df_today['sugar'].sum()
+        protein_today = df['protein'].sum()
+        fat_today = df['fat'].sum()
+        calories_today = df['calories'].sum()
+        carbs_today = df['carbohydrates'].sum()
+        sugar_today = df['sugar'].sum()
 
         return protein_today, fat_today, calories_today, carbs_today, sugar_today
     except Exception as e:
@@ -178,8 +180,12 @@ def create_circular_progress(value, target, unit, description, color, layout_dir
 
 
 
-def create_nutrition_display():
-    protein, fat, calories, carbs, sugar = calculate_todays_nutrition()
+def create_nutrition_display(selected_date_input):
+
+    df = load_and_filter_df(selected_date_input)
+
+    print('create_nutrition_display shape!', df.shape)
+    protein, fat, calories, carbs, sugar = calculate_todays_nutrition(df)
 
     nutrition_values = [
         create_circular_progress(protein, 140, "g", "Protein", "#ff6384"),

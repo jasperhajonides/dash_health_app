@@ -50,3 +50,28 @@ body {
 .icon-container {
     cursor: pointer;
 }
+
+
+/* Dairly panel Logging items */
+
+/* Make the table header sticky */
+.sticky-header th {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 1;
+}
+
+/* Initial style for meal type rows -- not sticky by default */
+.meal-type-row th {
+    background-color: #eee;
+    z-index: 2;
+}
+
+/* You'll dynamically add this class to make a meal type row sticky */
+.sticky-meal-type th {
+    position: sticky;
+    top: 40px; /* Adjust based on your header height */
+    background-color: #eee;
+    z-index: 3;
+}

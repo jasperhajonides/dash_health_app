@@ -36,8 +36,7 @@ from llm_code.prompt_generation import PromptGenerator
 from pages.nutrition_page_parts.current_item import collate_current_item
 from pages.nutrition_page_parts.daily_overview import create_daily_feed
 from pages.nutrition_page_parts.sample_food_item import *
-from pages.history_ui import generate_settings_offcanvas
-from pages.daily_logbooks import create_logbook_panel
+from pages.nutrition_page_parts.daily_logbooks import create_logbook_panel
 
 
 # Function to parse the contents of the uploaded file
@@ -56,20 +55,22 @@ def format_json_to_html(json_data):
     else:
         return json_data  # For basic data types
     
-def nutrition_numbers_layout():
-    # Assuming nutrition_numbers_container is a layout component
-    return create_nutrition_display()
+# def nutrition_numbers_layout():
+#     # Assuming nutrition_numbers_container is a layout component
+#     return create_nutrition_display()
 
-def combined_plots_layout():
-    # Create a layout that contains both the nutrient pie chart and the calories line plot side-by-side
-    return html.Div([
-        dcc.Graph(figure=create_nutrient_pie_chart(), style={'width': '50%', 'display': 'inline-block'}),
-        dcc.Graph(figure=create_calories_line_plot(), style={'width': '50%', 'display': 'inline-block'})
-    ])
+# def combined_plots_layout():
+#     # Create a layout that contains both the nutrient pie chart and the calories line plot side-by-side
+#     return html.Div([
+#         dcc.Graph(figure=create_nutrient_pie_chart(), style={'width': '50%', 'display': 'inline-block'}),
+#         dcc.Graph(figure=create_calories_line_plot(), style={'width': '50%', 'display': 'inline-block'})
+#     ])
 
-# List of carousel item functions
-carousel_items = [nutrition_numbers_layout, combined_plots_layout]
-
+# # List of carousel item functions
+# carousel_items = [
+#     lambda: create_nutrition_display('test argument'), 
+#     combined_plots_layout
+# ]
 
 
 # Current file directory
@@ -110,31 +111,31 @@ def nutrition_page():
 
     create_logbook_panel(),
 
-    html.H2("Nutritional Information", className="text-center mb-3"),
+    # html.H2("Nutritional Information", className="text-center mb-3"),
 
      # Carousel Content
-    html.Div([
-        # Left navigation button
-        html.Div(
-            dbc.Button('<', id='carousel-left-btn', color='light', className='carousel-btn', 
-                        style={'height': '80px', 'width': '40px'}),
-            style={'position': 'absolute', 'left': '0', 'top': '50%', 'transform': 'translateY(-50%)'}
-        ),
+    # html.Div([
+    #     # Left navigation button
+    #     html.Div(
+    #         dbc.Button('<', id='carousel-left-btn', color='light', className='carousel-btn', 
+    #                     style={'height': '80px', 'width': '40px'}),
+    #         style={'position': 'absolute', 'left': '0', 'top': '50%', 'transform': 'translateY(-50%)'}
+    #     ),
 
-        # Carousel content container
-        html.Div(id='carousel-content', className='carousel-content', 
-                    style={'height': '400px', 'overflow': 'hidden'}),
+    #     # Carousel content container
+    #     html.Div(id='carousel-content', className='carousel-content', 
+    #                 style={'height': '400px', 'overflow': 'hidden'}),
 
-        # Right navigation button
-        html.Div(
-            dbc.Button('>', id='carousel-right-btn', color='light', className='carousel-btn', 
-                        style={'height': '80px', 'width': '40px'}),
-            style={'position': 'absolute', 'right': '0', 'top': '50%', 'transform': 'translateY(-50%)'}
-        ),
-    ], style={'position': 'relative', 'height': '400px', 'margin-left': 'auto', 'margin-right': 'auto', 'width': '100%'}),
+    #     # Right navigation button
+    #     html.Div(
+    #         dbc.Button('>', id='carousel-right-btn', color='light', className='carousel-btn', 
+    #                     style={'height': '80px', 'width': '40px'}),
+    #         style={'position': 'absolute', 'right': '0', 'top': '50%', 'transform': 'translateY(-50%)'}
+    #     ),
+    # ], style={'position': 'relative', 'height': '400px', 'margin-left': 'auto', 'margin-right': 'auto', 'width': '100%'}),
 
-    html.H3("Enter Nutritional Data", className="mb-2"),
-    html.P("Enter an image of your intake and/or a description:", className="mb-2"),
+    html.H3("Enter Nutritional Data", className="text-center mb-2"),
+    html.P("Enter an image of your intake and/or a description:", className="text-center mb-2"),
 
 
 # Combined input bar with '✨' AI-toggle, camera icon, and submit button
@@ -282,30 +283,6 @@ def nutrition_page():
 
 
 def register_callbacks_nutrition(app):
-
-    @app.callback(
-        [
-            Output("settings-panel", "style"),
-            Output("toggle-settings", "style")
-        ],
-        [Input("toggle-settings", "n_clicks")],
-        [
-            State("settings-panel", "style"),
-            State("toggle-settings", "style")
-        ],
-    )
-    def toggle_settings_panel(n_clicks, panel_style, button_style):
-        if n_clicks:
-            if panel_style["bottom"] == "0%":
-                # Panel is open; move it to "closed" state, leaving a small part visible
-                panel_style["bottom"] = "-45%"  # Adjust as needed
-                button_style["bottom"] = "2.5%"  # Adjust to align with the visible part of the panel
-            else:
-                # Panel is "closed"; open it fully, but ensure it slides just below half the button
-                panel_style["bottom"] = "0%"
-                button_style["bottom"] = "47.5%"  # Adjust so the panel goes slightly under the button
-            return panel_style, button_style
-        return panel_style, button_style
 
 
 
@@ -750,35 +727,6 @@ def register_callbacks_nutrition(app):
         return "No image uploaded", {'display': 'none'}, None
 
 
-
-    @app.callback(
-        [Output('carousel-content', 'children'),
-        Output('carousel-index-store', 'data')],
-        [Input('carousel-left-btn', 'n_clicks'),
-        Input('carousel-right-btn', 'n_clicks')],
-        [State('carousel-index-store', 'data')]
-    )
-    def update_carousel_content(left_clicks, right_clicks, index_data):
-        ctx = dash.callback_context
-
-        # Retrieve the current index from dcc.Store
-        current_index = index_data['index']
-
-        if not ctx.triggered:
-            # Default content on initial load
-            return carousel_items[current_index](), index_data
-        else:
-            button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-
-            if button_id == 'carousel-right-btn':
-                # Increment index and loop back if at the end
-                current_index = (current_index + 1) % len(carousel_items)
-            elif button_id == 'carousel-left-btn':
-                # Decrement index and loop back if at the start
-                current_index = (current_index - 1) % len(carousel_items)
-
-            # Call the function to get the layout and update the index
-            return carousel_items[current_index](), {'index': current_index}
 
 
     # @app.callback(
