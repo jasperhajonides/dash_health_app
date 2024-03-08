@@ -159,6 +159,14 @@ def nutrition_page():
         # Custom Text Input for AI mode
         dbc.Input(id='nutritional-text-input', type="search", placeholder="Optional: add details about intake", className='gradient-input', style={'display': 'none'}),
         dbc.Input(id='food-names-input', type="search", placeholder="Search food items", style={'display': 'block'}),
+
+        dcc.Upload(
+            id='upload-image',
+            children=dbc.Button("📷", id='upload-trigger', color="light", style={'borderRadius': '0'}),
+            style={'width': '38px', 'height': '38px', 'position': 'relative', 'overflow': 'hidden', 'display': 'inline-block'},
+            multiple=True
+        ),
+
         dbc.Button("Submit", id="submit-nutrition-data", color="primary", style={'borderRadius': '0 50px 50px 0'}),
     ], style={'width': '65%', 'margin': '0 auto', 'borderRadius': '50px', 'border': '2px solid grey'}),
     html.Div(id='suggestions-container', style={'position': 'absolute', 'width': '35%', 'maxHeight': '300px', 'overflowY': 'auto', 'background': 'white', 'border': '1px solid lightgrey', 'zIndex': '1000'}),  # Container for suggestions
@@ -167,19 +175,7 @@ def nutrition_page():
 
     # images
     html.Div([]),
-    dcc.Upload(
-        id='upload-image',
-        children=dbc.Button("📷", id='upload-trigger', color="light", style={'borderRadius': '0'}),
-        style={'width': '38px', 'height': '38px', 'position': 'relative', 'overflow': 'hidden', 'display': 'inline-block'},
-        multiple=True
-    ),
-    html.Div(id='display-image', style={
-        'display': 'none',  # Initially hidden
-        'width': '256px',  # Set the width for the image
-        'height': '256px',  # Set the height for the image
-        'vertical-align': 'top',
-        'margin': '0 auto'  # Center align if desired
-    }),
+
 
 
 
@@ -196,6 +192,7 @@ def nutrition_page():
 
         # Right part for response text and nutritional values
         html.Div([
+
             # Div for response text
             html.Div(id='response-text-output', style={
                 'fontFamily': 'Courier New',
@@ -205,12 +202,32 @@ def nutrition_page():
                 'borderRadius': '5px'  # Optional: rounded corners for the box
             }),
             ############## nutritional values input 
-            # Div for nutritional values
-            
+
             # Div for Weight Input and Nutritional Values
             html.Div([
+
+
+
+
                 # Weight Input with Update Button
                 dbc.InputGroup([
+
+                    html.Div(
+                    id='display-image',
+                    style={
+                        'width': '128px',  # Set the width for the image
+                        'height': '128px',  # Set the height for the image
+                        'vertical-align': 'top',
+                        'margin': '0 auto',  # Center align if desired
+                        'border': '2px dashed #ccc',  # Optional: add a dashed border to indicate it's a placeholder area
+                        'display': 'flex',  # Use flex layout
+                        'justify-content': 'center',  # Center horizontally
+                        'align-items': 'center',  # Center vertically
+                        'background-image': 'url("/assets/placeholder-icon.svg")',  # Assuming you have a placeholder icon in your assets folder
+                        'background-repeat': 'no-repeat',
+                        'background-position': 'center'
+                    }
+                ),
                     # Meal Dropdown with Label
                     html.Div([
                         dbc.Label("Meal:", style={'marginRight': '10px', 'alignSelf': 'center'}),
@@ -234,9 +251,14 @@ def nutrition_page():
                     dbc.Button("Update", id="update-nutrition-values", n_clicks=0, color="primary", style={'marginLeft': '15px', 'alignSelf': 'center'})
                 ], style={'marginBottom': '10px', 'display': 'flex', 'alignItems': 'center'}),
 
+
+
+
+
                 # Placeholder for Nutritional Values
                 html.Div(id='dynamic-nutritional-values')
             ], style={'height': '1150px', 'border': '1px solid #ddd', 'borderRadius': '5px', 'padding': '10px'}),
+
 
 
 
@@ -253,32 +275,6 @@ def nutrition_page():
 
     ], style={'display': 'flex', 'justify-content': 'center', 'width': '100%', 'lineHeight': '34px'}),
 
-    ################# daily feed  ################
-    # html.H2('Daily feed'),
-    # html.Div([
-    #     # Left arrow button
-    #     html.Button('←', id='prev-day-button', 
-    #                 style={'display': 'inline-block', 'background-color': 'white', 'border': '1px solid darkgrey'}),
-        
-    #     # Date picker
-    #     dcc.DatePickerSingle(
-    #         id='selected-date',
-    #         date=datetime.today().date(),
-    #         style={'display': 'inline-block'}
-    #     ),
-
-    #     # Right arrow button
-    #     html.Button('→', id='next-day-button', 
-    #                 style={'display': 'inline-block', 'background-color': 'white', 'border': '1px solid darkgrey'}),
-    # ], style={'textAlign': 'center', 'padding': '10px'}),
-
-    # # show the previous entries (today)
-
-    # html.Div([dbc.Button('Show Entries', id='refresh-entries-button', color="primary", className="mb-3")
-    #         ], style={'text-align': 'center', 'padding-top': '24px'}),
-
-    # html.Div(id='recent-entries-container'),
-    # footer,
 
 
     
@@ -719,8 +715,8 @@ def register_callbacks_nutrition(app):
             src_str = f"data:image/{image_format};base64,{base64_image}"
 
             image_style = {
-                'width': '256px',
-                'height': '256px',
+                'width': '128px',
+                'height': '128px',
                 'border': '5px solid transparent',  # Gradient border
                 'background-image': 'linear-gradient(white, white), linear-gradient(to right, lightblue, darkblue)',
                 'background-origin': 'border-box',
@@ -729,7 +725,18 @@ def register_callbacks_nutrition(app):
             return html.Img(src=src_str, style={'max-width': '100%', 'height': 'auto'}), image_style, base64_image
 
         # No image uploaded
-        return "No image uploaded", {'display': 'none'}, None
+        return " ", {
+        'display': 'flex',  # Ensure the div remains visible
+        'justify-content': 'center',  # Center the content
+        'align-items': 'center',  # Vertically center
+        'width': '128px',  # Set the width for the image placeholder
+        'height': '128px',  # Set the height for the image placeholder
+        'border': '2px dashed #ccc',  # Optional: dashed border
+        'background-repeat': 'no-repeat',
+        'background-position': 'center',
+        'background-size': '100px 100px',  # Adjust size of the background image (placeholder icon)
+        'background-image': 'url("/assets/placeholder.png")'  # Placeholder icon
+    }, None
 
 
 
