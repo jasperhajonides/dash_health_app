@@ -100,7 +100,7 @@ Then try running ./gcloud init again.
 
 To ensure that the gcloud command is available in all terminal sessions without needing to navigate to the installation directory, add the Google Cloud SDK's bin directory to your PATH environment variable. Add the following line to your .zshrc or .bash_profile file, depending on which shell you use:
 
-`export PATH="$PATH:/Users/jasperhajonides/Documents/scripts/google cloud sdk/google-cloud-sdk/bin"`
+`export PATH="$PATH:/path/to/dir/google-cloud-sdk/bin"`
 
 After editing the file, apply the changes by running:
 
