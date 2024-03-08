@@ -1,8 +1,8 @@
-import sys
+import os
 from dash import Dash, html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
-from dash import dcc
+from dash import dcc, no_update
 
 
 from pages.nutrition import nutrition_page, register_callbacks_nutrition
@@ -17,12 +17,6 @@ from pages import (
     ) 
 
 app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
-
-
-
-# Register callbacks for each page
-# all_activities.register_callbacks(app)
-# information.register_callbacks(app)
 
 
 app.layout = html.Div([
@@ -58,8 +52,6 @@ single_activity.register_callbacks(app)
 register_callbacks_nutrition(app)
 register_callbacks_logbook(app)
 
-# profile.register_callbacks(app)
-
 
 # Callback for updating page content
 
@@ -73,7 +65,7 @@ def display_page(pathname):
     elif pathname == '/profile':
         return profile.layout
     elif pathname == '/information':
-        return information.layout
+        return no_update()
     elif pathname == '/single_activity':
         return single_activity.layout  # No need to pass row_data here
     elif pathname == '/nutrition':
@@ -94,4 +86,5 @@ def display_page(pathname):
 #     return df_all_fits
 
 if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+    port = int(os.environ.get('PORT', 8050))
+    app.run_server(debug=True, host='0.0.0.0', port=port)
