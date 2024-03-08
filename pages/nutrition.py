@@ -12,6 +12,7 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 
 import dash_iconify as di
+from dash_iconify import DashIconify
 
 from dash import callback_context
 from dash.dependencies import Input, Output, State, ALL
@@ -152,15 +153,9 @@ def nutrition_page():
                 style={'display': 'block', 'margin': '10px auto'}  # Centering the switch
             ),
 
-            # Your other input components...
         ]),
 
-        dcc.Upload(
-            id='upload-image',
-            children=dbc.Button("📷", id='upload-trigger', color="light", style={'borderRadius': '0'}),
-            style={'width': '38px', 'height': '38px', 'position': 'relative', 'overflow': 'hidden', 'display': 'inline-block'},
-            multiple=True
-        ),
+
         # Custom Text Input for AI mode
         dbc.Input(id='nutritional-text-input', type="search", placeholder="Optional: add details about intake", className='gradient-input', style={'display': 'none'}),
         dbc.Input(id='food-names-input', type="search", placeholder="Search food items", style={'display': 'block'}),
@@ -168,6 +163,23 @@ def nutrition_page():
     ], style={'width': '65%', 'margin': '0 auto', 'borderRadius': '50px', 'border': '2px solid grey'}),
     html.Div(id='suggestions-container', style={'position': 'absolute', 'width': '35%', 'maxHeight': '300px', 'overflowY': 'auto', 'background': 'white', 'border': '1px solid lightgrey', 'zIndex': '1000'}),  # Container for suggestions
     ], style={'padding-bottom': '24px', 'text-align': 'center'}),
+
+
+    # images
+    html.Div([]),
+    dcc.Upload(
+        id='upload-image',
+        children=dbc.Button("📷", id='upload-trigger', color="light", style={'borderRadius': '0'}),
+        style={'width': '38px', 'height': '38px', 'position': 'relative', 'overflow': 'hidden', 'display': 'inline-block'},
+        multiple=True
+    ),
+    html.Div(id='display-image', style={
+        'display': 'none',  # Initially hidden
+        'width': '256px',  # Set the width for the image
+        'height': '256px',  # Set the height for the image
+        'vertical-align': 'top',
+        'margin': '0 auto'  # Center align if desired
+    }),
 
 
 
@@ -180,14 +192,7 @@ def nutrition_page():
     html.H3("Entered item:", className="text-center"),
    # Section for displaying the image, response text, and nutritional values
     html.Div([
-        # Left part for the image
-        html.Div(id='display-image', style={
-            'display': 'none',  # Initially hidden
-            'width': '256px',  # Set the width for the image
-            'height': '256px',  # Set the height for the image
-            'vertical-align': 'top',
-            'margin': '0 auto'  # Center align if desired
-        }),
+      
 
         # Right part for response text and nutritional values
         html.Div([
@@ -570,45 +575,46 @@ def register_callbacks_nutrition(app):
         # Determine which input triggered the callback
         trigger = ctx.triggered[0]['prop_id']
 
-        json_entry = adjust_nutritional_weight_values(json_entry, trigger, weight_input)
+        # FUNCTIO NTHAT DOES ALL THE WEIGHT STUFF, BUT NOT ENTIRELY FUNCTIONAL
+        # json_entry = adjust_nutritional_weight_values(json_entry, trigger, weight_input)
 
-        # # Extract the weight from json_entry, use default if not present or zero
-        # json_weight = json_entry.get('weight', 100)
-        # if json_weight == 0:
-        #     json_weight = 100
-        # default_weight = json_weight
+        # Extract the weight from json_entry, use default if not present or zero
+        json_weight = json_entry.get('weight', 100)
+        if json_weight == 0:
+            json_weight = 100
+        default_weight = json_weight
 
-        # # Update weight_input to json_entry weight when submit-nutrition-data button is clicked
-        # if 'submit-nutrition-data.n_clicks' in trigger:
-        #     weight_input = json_weight
-        #     default_weight = json_weight
-        # elif weight_input is None or weight_input == dash.no_update:
-        #     # Maintain the existing weight_input value for other triggers
-        #     weight_input = json_weight
-        #     default_weight = json_weight
-
-
-        # # Adjust the values based on the input weight
-        # factor = weight_input / default_weight
+        # Update weight_input to json_entry weight when submit-nutrition-data button is clicked
+        if 'submit-nutrition-data.n_clicks' in trigger:
+            weight_input = json_weight
+            default_weight = json_weight
+        elif weight_input is None or weight_input == dash.no_update:
+            # Maintain the existing weight_input value for other triggers
+            weight_input = json_weight
+            default_weight = json_weight
 
 
-        # # adapt the weight of these items.
-        # essential_amino_acids = [
-        #     "histidine",
-        #     "isoleucine",
-        #     "leucine",
-        #     "lysine",
-        #     "methionine",
-        #     "phenylalanine",
-        #     "threonine",
-        #     "tryptophan",
-        #     "valine"
-        # ]
-        # columns_to_adjust = ['calories','carbohydrates','protein','fat',
-        #                      'fiber','sugar','unsaturated fat','saturated fat','weight'] + essential_amino_acids
-        # for entry in columns_to_adjust:
-        #     if entry in json_entry:
-        #         json_entry[entry] = json_entry[entry]*factor
+        # Adjust the values based on the input weight
+        factor = weight_input / default_weight
+
+
+        # adapt the weight of these items.
+        essential_amino_acids = [
+            "histidine",
+            "isoleucine",
+            "leucine",
+            "lysine",
+            "methionine",
+            "phenylalanine",
+            "threonine",
+            "tryptophan",
+            "valine"
+        ]
+        columns_to_adjust = ['calories','carbohydrates','protein','fat',
+                             'fiber','sugar','unsaturated fat','saturated fat','weight'] + essential_amino_acids
+        for entry in columns_to_adjust:
+            if entry in json_entry:
+                json_entry[entry] = json_entry[entry]*factor
 
 
         # Check if the submit button was clicked
@@ -693,7 +699,6 @@ def register_callbacks_nutrition(app):
 
         return html.Div("Complete")
         
-
 
     # Function to process the image
     @app.callback(

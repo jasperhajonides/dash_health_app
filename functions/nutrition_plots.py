@@ -184,7 +184,6 @@ def create_nutrition_display(selected_date_input):
 
     df = load_and_filter_df(selected_date_input)
 
-    print('create_nutrition_display shape!', df.shape)
     protein, fat, calories, carbs, sugar = calculate_todays_nutrition(df)
 
     nutrition_values = [
