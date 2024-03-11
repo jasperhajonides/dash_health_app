@@ -126,7 +126,6 @@ def create_nutritional_card(info, title, section):
 def create_activity_level_slider(activity_profile):
     # Extract activity level from user_data_instance, defaulting to 1 if not found
     activity_level = activity_profile.user_info.get("activity_profile", {}).get("activity_level", 1)
-    print('activity_level', activity_level)
     slider = dcc.Slider(
         id='activity-level-slider',
         min=1,

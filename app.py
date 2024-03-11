@@ -10,11 +10,9 @@ from pages.all_activities import all_activities_page, register_callbacks_all_act
 from pages.nutrition_page_parts.daily_logbooks import register_callbacks_logbook
 # Import sidebar and pages
 from pages import (
-    home_old,
     sidebar, 
     single_activity,
     profile,
-    home
     ) 
 
 from data.user_data import UserData
@@ -42,16 +40,15 @@ app.layout = html.Div([
 
     dbc.Row(
         [
-            dbc.Col(sidebar.create_sidebar(), width=2, style={"position": "fixed", "left": 0, "width": "20%", "minHeight": "100vh"}),
-            dbc.Col(id="page-content", style={"marginLeft": "25%","marginRight": "10%" , "padding": "20px"}), #"width": "60%"
+            dbc.Col(sidebar.create_top_navbar(), width=12),  # Replace sidebar with top navbar
+            dbc.Col(id="page-content", style={"marginLeft": "0%", "marginRight": "0%", "padding": "1px"}),
         ]
     ),
     dcc.Location(id="url", refresh=False)
 ])
 
 # Register callbacks from sidebar
-sidebar.register_callbacks(app)
-home_old.register_callbacks(app)
+# sidebar.register_callbacks(app)
 register_callbacks_all_activities(app)
 single_activity.register_callbacks(app)
 register_callbacks_nutrition(app)
@@ -78,7 +75,9 @@ def display_page(pathname):
     elif pathname == '/nutrition':
         return nutrition_page()
     else:
-        return home.layout
+        return html.Div([
+                    html.Iframe(src="/assets/index.html", style={"width": "100%", "height": "100vh", "border": "none"})
+                ])
     
 
 if __name__ == '__main__':
