@@ -24,8 +24,7 @@
     width: 100%;
     display: flex;
     padding: var(--dl-space-space-doubleunit);
-    /* max-width: 1400px; */
-    box-shadow: 5px 5px 10px 0px #d4d4d4;
+    max-width: 100%;
     align-items: center;
     border-color: var(--dl-color-gray-black);
     border-width: 1px;
@@ -70,8 +69,9 @@
     width: 24px;
     height: 24px;
   }
-  
 
+
+  
 
 body {
   font-family: 'Proza Libre', sans-serif;
