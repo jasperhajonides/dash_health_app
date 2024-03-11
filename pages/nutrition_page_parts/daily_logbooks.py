@@ -224,12 +224,6 @@ def prepare_logbook_panel_contents(footer):
     return panel_contents
 
 
-
-import dash_bootstrap_components as dbc
-import dash_html_components as html
-import dash_iconify as di
-from datetime import datetime
-
 def create_logbook_panel():
     panel_style_initial = {
         "position": "fixed",

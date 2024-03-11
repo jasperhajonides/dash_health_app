@@ -35,6 +35,5 @@ def load_and_filter_df(selected_date_input):
     filtered_df = df[df['date'].dt.date == selected_date.date()]
 
     # Debugging print statement to check the number of entries for the selected date
-    print(f"Entries for {selected_date.date()}: {len(filtered_df)}")
 
     return filtered_df

@@ -10,11 +10,17 @@ from pages.all_activities import all_activities_page, register_callbacks_all_act
 from pages.nutrition_page_parts.daily_logbooks import register_callbacks_logbook
 # Import sidebar and pages
 from pages import (
+    home_old,
     sidebar, 
-    home, 
     single_activity,
     profile,
+    home
     ) 
+
+from data.user_data import UserData
+
+user_data_instance = UserData(user_id=1)  # Assuming a fixed user ID for demonstration
+
 
 app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -34,7 +40,6 @@ app.layout = html.Div([
     dcc.Store(id='item-submission-state', data={'submitted': False}), # whether we pressed item submission or not in the nutrition app
 
 
-
     dbc.Row(
         [
             dbc.Col(sidebar.create_sidebar(), width=2, style={"position": "fixed", "left": 0, "width": "20%", "minHeight": "100vh"}),
@@ -46,11 +51,13 @@ app.layout = html.Div([
 
 # Register callbacks from sidebar
 sidebar.register_callbacks(app)
-home.register_callbacks(app)
+home_old.register_callbacks(app)
 register_callbacks_all_activities(app)
 single_activity.register_callbacks(app)
 register_callbacks_nutrition(app)
 register_callbacks_logbook(app)
+profile.callback_functions_profile(app, user_data_instance)
+
 
 
 # Callback for updating page content
@@ -63,7 +70,7 @@ def display_page(pathname):
     if pathname == '/all-activities':
         return all_activities_page()
     elif pathname == '/profile':
-        return profile.layout
+        return profile.profile_layout(user_data_instance)
     elif pathname == '/information':
         return no_update()
     elif pathname == '/single_activity':
@@ -73,17 +80,6 @@ def display_page(pathname):
     else:
         return home.layout
     
-
-# @app.callback(
-#     Output('all_fit_files', 'data')
-#     Input()
-# )
-# def load_in_fit_files():
-
-#     lff = LoadFitFiles(directory= '/Users/jasperhajonides/Desktop/garmin_data/',list_fit_files=None ) #, list_fit_files=list_fits)#root_path + 'data/garmin_test_data/')
-#     df_all_fits = lff.get_fit_data()
-
-#     return df_all_fits
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8050))

@@ -64,7 +64,9 @@ dash_health_app/
 
 # GCP deployment:
 
-First ensure `gcloud` is installed correctly:
+Make sure you create a project on GCP and enable your billing because this does cost a little bit of money (£1-10?)
+
+To host the docker image ensure `gcloud` is installed correctly:
 
 
 ## Installing google cloud sdk

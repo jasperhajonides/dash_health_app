@@ -106,7 +106,6 @@ def collate_current_item(json_entry,
 
     def plot_stacked_amino_acid_chart(json_entry, recommended_intakes_mg):
         amino_acid_names, completed_percentages, remaining_percentages, _ = create_stacked_amino_acid_plot(json_entry, recommended_intakes_mg)
-        print('completed_percentages::::::', completed_percentages)
         # Setting up custom hover text for both parts
         custom_hover_texts = [f"{round(json_entry.get(amino_acid, 0))}mg<br>({round((json_entry.get(amino_acid, 0) / recommended_intakes_mg[amino_acid]) * 100)}%)" for amino_acid in amino_acid_names]
         
@@ -398,7 +397,7 @@ def collate_current_item(json_entry,
                         layout_direction='below', radius=20, fontsize_text=13, fontsize_num=20, 
                         stroke_width_backgr=2.5, stroke_width_complete=5, stroke_dashoffset=0
                     ),
-                ], style={'display': 'flex', 'justifyContent': 'space-between', 'gap': '-500px'}),  # Adjusted for closer elements
+                ], style={'display': 'flex', 'justifyContent': 'space-between', 'gap': '10px'}),  # Adjusted for closer elements
             ], style={'flex': '2', 'padding': '10px', 'display': 'flex', 'flexDirection': 'column', 'justifyContent': 'space-between'}),
 
         ], style={'display': 'flex', 'flexDirection': 'row'}),
