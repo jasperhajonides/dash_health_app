@@ -17,7 +17,8 @@
     align-items: center;
     flex-direction: column;
     background-size: cover;
-    background-image: url("https://images.unsplash.com/photo-1484627147104-f5197bcd6651?ixlib=rb-1.2.1&q=85&fm=jpg&crop=entropy&cs=srgb&w=1000");
+    /* background-image: url("https://images.unsplash.com/photo-1484627147104-f5197bcd6651?ixlib=rb-1.2.1&q=85&fm=jpg&crop=entropy&cs=srgb&w=1000"); */
+    background-image: url("https://img-c.udemycdn.com/course/750x422/5425956_1ea4.jpg");
     background-position: 0% 40%;
   }
   .landing-page-navbar {
@@ -56,6 +57,12 @@
   .landing-page-text03 {
     margin-right: var(--dl-space-space-doubleunit);
   }
+  .landing-page-text04 {
+    margin-right: var(--dl-space-space-doubleunit);
+  }
+  .landing-page-text05 {
+    margin-right: var(--dl-space-space-doubleunit);
+  }
   .landing-page-link {
     display: contents;
   }
@@ -69,7 +76,17 @@
     width: 24px;
     height: 24px;
   }
-
+  .solid-button-button {
+    color: var(--dl-color-gray-white);
+    border: none;
+    padding-top: var(--dl-space-space-halfunit);
+    padding-left: var(--dl-space-space-doubleunit);
+    border-radius: 50px;
+    padding-right: var(--dl-space-space-doubleunit);
+    padding-bottom: var(--dl-space-space-halfunit);
+    background-color: var(--dl-color-primary-100);
+  }
+  
 
   
 

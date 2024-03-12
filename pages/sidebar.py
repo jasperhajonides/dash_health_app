@@ -2,39 +2,60 @@ from dash import html, dcc
 import dash_bootstrap_components as dbc
 
 def create_top_navbar():
-    navbar_layout = dbc.Navbar(
+    navbar_layout = html.Div(  # This div corresponds to 'landing-page-container' in your CSS
         [
-            # Logo and brand on the left
-            html.A(
-                dbc.Row(
-                    [
-                        dbc.Col(html.Img(src="./assets/logo_v1.png", height="50px"), width="auto"),
-                        dbc.Col(dbc.NavbarBrand("Vitalics.ai", className="ml-2"), width="auto"),
-                    ],
-                    align="center",
-                    # no_gutters=True,
-                ),
-                href="/",
-            ),
-            # Navigation items on the right
-            dbc.Nav(
+            html.Div(  # This div corresponds to 'landing-page-top-container' in your CSS
                 [
-                    dbc.NavItem(dbc.NavLink("Home", href="/")),
-                    dbc.NavItem(dbc.NavLink("All Activities", href="/all-activities")),
-                    dbc.NavItem(dbc.NavLink("Activities", href="/activities")),
-                    dbc.NavItem(dbc.NavLink("Profile", href="/profile")),
-                    dbc.NavItem(dbc.NavLink("Nutrition", href="/nutrition")),
-                    dbc.NavItem(dbc.NavLink("Information", href="/information")),
+                    dbc.Navbar(
+                        [
+                            # Logo and brand on the left
+                            html.A(
+                                dbc.Row(
+                                    [
+                                        dbc.Col(html.Img(src="./assets/logo_v1.png", height="50px"), className="my-auto"),
+                                        dbc.Col(dbc.NavbarBrand("Vitalics.ai", className="ml-2"), className="my-auto"),
+                                    ],
+                                    align="center",
+                                    className="flex-grow-0",
+                                ),
+                                href="/",
+                            ),
+                            # Right-side elements
+                            html.Div(
+                                [
+                                    # Navigation links
+                                    html.Div(
+                                        [
+                                            dcc.Link("Home", href="/", className="landing-page-text"),
+                                            dcc.Link("All Activities", href="/all-activities", className="landing-page-text"),
+                                            dcc.Link("Activities", href="/activities", className="landing-page-text"),
+                                            dcc.Link("Profile", href="/profile", className="landing-page-text"),
+                                            dcc.Link("Nutrition", href="/nutrition", className="landing-page-text"),
+                                            dcc.Link("Information", href="/information", className="landing-page-text"),
+                                        ],
+                                        className="landing-page-links-container"
+                                    ),
+                                    # 'Explore places' button
+                                    dcc.Link(
+                                        html.Button(
+                                            "Explore places",
+                                            className="solid-button-button"
+                                        ),
+                                        href="#main-section",
+                                    ),
+                                ],
+                                className="landing-page-right-side"  # This div corresponds to 'landing-page-right-side' in your CSS
+                            ),
+                        ],
+                        className="landing-page-navbar",  # Corresponds to 'landing-page-navbar' in your CSS
+                        color="light",
+                        dark=False,
+                        sticky="top",
+                    ),
                 ],
-                className="ml-auto",  # This will push the nav to the right side of the navbar
-                navbar=True,
+                className="landing-page-top-container",
             ),
-            # 'Explore places' button
-            dbc.Button("Explore places", color="primary", className="ml-2", href="#main-section"),
         ],
-        className="landing-page-navbar",  # Use your custom CSS class
-        color="light",
-        dark=False,
-        sticky="top",
+        className="landing-page-container",
     )
     return navbar_layout
