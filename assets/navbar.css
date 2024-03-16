@@ -18,7 +18,7 @@
     flex-direction: column;
     background-size: cover;
     /* background-image: url("https://images.unsplash.com/photo-1484627147104-f5197bcd6651?ixlib=rb-1.2.1&q=85&fm=jpg&crop=entropy&cs=srgb&w=1000"); */
-    background-image: url("https://img-c.udemycdn.com/course/750x422/5425956_1ea4.jpg");
+    background-image: url("https://miro.medium.com/v2/resize:fit:1358/0*QAQv9mfGLLhesSvz");
     background-position: 0% 40%;
   }
   .landing-page-navbar {
@@ -32,19 +32,61 @@
     border-radius: var(--dl-radius-radius-radius4);
     flex-direction: row;
     justify-content: space-between;
+    box-shadow: none !important; /* Remove any box-shadow if not needed */
+    background-color: transparent !important; /* Make navbar background transparent */
+    padding-top: 0.5rem; /* Reduce top padding */
+    padding-bottom: 0.5rem; /* Reduce bottom padding */
+}
+
+.landing-page-navbar img {
+    height: 40px; /* Adjust the logo height down if necessary */
+    /* Keep other existing styles */
   }
+
   .landing-page-right-side {
     display: flex;
     align-items: center;
     flex-direction: row;
     justify-content: space-between;
   }
-  .landing-page-links-container {
+  /* .landing-page-links-container {
     display: flex;
     align-items: center;
     flex-direction: row;
     justify-content: space-between;
+  } */
+
+  body, .landing-page-links-container a {
+    font-family: 'Proza Libre', sans-serif; /* Apply the font to body and links */
   }
+  
+  .landing-page-links-container a {
+    color: #333; /* Or any color you prefer */
+    text-decoration: none; /* Removes underline from hyperlinks */
+    padding: 10px; /* Adds space around the links */
+    /* font-weight: bold; Makes the font bold */
+    transition: transform 0.2s; /* Smooth transition for transformation */
+  }
+  
+  .landing-page-links-container a:hover {
+    transform: scale(1.1); /* Slightly enlarges the link text */
+    text-decoration: none; /* Ensures no underline on hover */
+  }
+
+
+
+  
+  
+  /* Style for logo and website name */
+  .navbar-brand {
+    font-size: 28px; /* Adjust the size as needed */
+    font-weight: bold;
+    color: #333 !important; /* Change color as needed */
+    text-decoration: none !important;
+  }
+
+
+
   .landing-page-text {
     margin-right: var(--dl-space-space-doubleunit);
   }
@@ -90,8 +132,8 @@
 
   
 
-body {
-  font-family: 'Proza Libre', sans-serif;
-}
-
+/*  */
+body, .landing-page-navbar, .landing-page-links-container a, .landing-page-navbar .navbar-brand {
+    font-family: 'Proza Libre', sans-serif;
+  }
 /* Add other styles as needed */
