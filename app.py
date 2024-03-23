@@ -15,13 +15,15 @@ from pages import (
     profile,
     ) 
 
-from data.user_data import UserData
+from functions.user_data import UserData
 
-user_data_instance = UserData(user_id=1)  # Assuming a fixed user ID for demonstration
-
+user_data_instance = UserData(user_id = 'jasperhajonides')
 
 app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
+# Serve the assets folder? for adding teleporthq code to the app
+app.css.config.serve_locally = True
+app.scripts.config.serve_locally = True
 
 app.layout = html.Div([
     dcc.Store(id='selected_sport'),  # Store component

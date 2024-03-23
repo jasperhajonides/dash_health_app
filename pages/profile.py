@@ -1,9 +1,11 @@
 from dash.dependencies import Input, Output, State, MATCH, ALL
+from dash import Dash, dcc, html, Input, Output, State, callback_context, MATCH, ALL
+
 import json
 import dash
-from dash import html, dcc
 import dash_bootstrap_components as dbc
 
+import time
 
 from dash import Input, State, Output
 
@@ -123,92 +125,165 @@ def create_nutritional_card(info, title, section):
         className="h-100",
     )
 
-def create_activity_level_slider(activity_profile):
-    # Extract activity level from user_data_instance, defaulting to 1 if not found
-    activity_level = activity_profile.user_info.get("activity_profile", {}).get("activity_level", 1)
-    slider = dcc.Slider(
-        id='activity-level-slider',
-        min=1,
-        max=7,
-        step=1,
-        value=activity_level,  # Use the extracted or default activity level
-        marks={i: str(i) for i in range(1, 8)},
-        className="mb-3",
-    )
-
-    return html.Div(id='slider-output-container', children=[slider])
-
 
 def profile_layout(user_data_instance):
-    user_profile = user_data_instance.user_info["user_profile"]
-    activity_profile = user_data_instance.user_info["activity_profile"]
+    user_profile = user_data_instance.user_profile
+    api_profile = user_data_instance.api_profile  # Direct access, no ["api_profile"] needed
 
-    nutritional_info = user_data_instance.get_nutritional_info()  # Example method to get nutritional info
-
+    # Assuming 'activity_profile' is part of 'user_profile' based on your initial structure
+    activity_profile = user_profile.get("activity_profile", {})  # Provides an empty dict as default if not found
+    nutritional_info = user_data_instance.nutritional_info  # Directly access nutritional_info
     # Define the layout
     layout = html.Div([
-            html.Div([
-            html.H2("User Profile", className="text-center mb-4 section-header"),
-            dbc.Container(fluid=True, children=[
-                dbc.Row([
-                    dbc.Col([
-                        create_info_field("Name", user_profile["name"]),
-                        create_info_field("Weight", user_profile["weight"], editable=True,field_id="user_profile-weight"),
-                        create_info_field("Height", user_profile["height"], editable=True, field_id="user_profile-height"),
-                        create_info_field("Sports", activity_profile["sports"]),
-                    ], md=6),
-                    dbc.Col([
-                        create_info_field("Date of Birth", user_profile["dob"]),
-                        create_info_field("Location", user_profile["location"]),
-                        create_info_field("Member since", user_profile["member_since"]),
-                    ], md=6),
-                ], className="mb-4"),
-                html.H4("Activity Level", className="text-center mb-3"),
-                dbc.Row(
-                    dbc.Col([
-                        html.Div(id="slider-text-output", className="text-center"),
-                        create_activity_level_slider(user_data_instance),  # This replaces the direct dcc.Slider creatio
-                    ], width=12),
-                ),
-            ]),
-            dbc.Row(
-                dbc.Col([
-                    dbc.Button("Save Profile", id={'type': 'save-btn', 'section': 'user-profile'}, className="mt-2")
-                ], width={"size": 6, "offset": 3}),
-                className="mb-4"),
-
-        ], className="section-box"),
-        
-        html.Div([
-            html.H3("Nutritional Information", className="text-center mb-4 section-header"),
-            html.P("This section indicates the recommended daily limits. Press \"Predict\" to get tailor-made predictions for your profile. Edit quantities where required.",
-                className="text-center mb-4", id="nutrition-subtitle"),
-            dbc.Row(
-                dbc.Col(
-                    dbc.Button("Predict", color="info", className="me-1", id="predict-button"),
-                    width={"size": 6, "offset": 3},
-                ),
-                className="mb-4"
-            ),
-            dbc.Container(fluid=True, children=[
-                        dbc.Row([
-                            dbc.Col(create_nutritional_card(nutritional_info['daily_macros'], "Daily Macros", "daily_macros"), md=4),
-                            dbc.Col(create_nutritional_card(nutritional_info['vitamins'], "Vitamins", "vitamins"), md=4),
-                            dbc.Col(create_nutritional_card(nutritional_info['amino_acids'], "Amino Acids", "amino_acids"), md=4),
-                        ], className="mb-4"),
-                        dbc.Row([
-                            dbc.Col(create_nutritional_card(nutritional_info['minerals'], "Minerals", "minerals"), md=4),
-                            dbc.Col(create_nutritional_card(nutritional_info['sugars_fibers'], "Sugars & Fibers", "sugars_fibers"), md=4),
-                            dbc.Col(create_nutritional_card(nutritional_info['fats'], "Fats", "fats"), md=4),
-                        ]),
+        # Omitting head elements like styles and scripts, which should be in the assets folder or handled via Dash's external_stylesheets
+        html.Div(className="workbench-container", children=[
+            # User Settings Menu Container
+            html.Div(className="usersettingsmenu-container", children=[
+                html.Div(className="usersettingsmenu-options", children=[
+                    html.H1("User Profile", className="usersettingsmenu-text"),
+                    html.Div(className="usersettingsmenu-container1", children=[
+                        html.Span("Name", className="usersettingsmenu-text1"),
+                        dcc.Input(
+                            value=user_profile.get("name", ""),
+                            id={'type': 'user-info', 'field': 'name'},
+                            type="text",
+                            placeholder="John Smith",
+                            className="usersettingsmenu-textinput input",
+                        ),
                     ]),
-        dbc.Row([
-                dbc.Col([
-                    dbc.Button("Save Nutritional Info", id={'type': 'save-btn', 'section': 'nutritional-info'}, className="mt-2")
-                ], width={"size": 6, "offset": 3}),
+                    html.Div(className="usersettingsmenu-container2", children=[
+                        html.Span("Weight", className="usersettingsmenu-text2"),
+                        dcc.Input(
+                            value=user_profile.get("weight", ""),
+                            id={'type': 'user-info', 'field': 'weight'},
+                            type="text",
+                            placeholder="0 kg",
+                            className="usersettingsmenu-textinput1 input"
+                        ),
+                    ]),
+                    html.Div(className="usersettingsmenu-container3", children=[
+                        html.Span("Height", className="usersettingsmenu-text3"),
+                        dcc.Input(
+                            value=user_profile.get("height", ""),
+                            id={'type': 'user-info', 'field': 'height'},
+                            type="text",
+                            placeholder="0 cm",
+                            className="usersettingsmenu-textinput2 input"
+                        ),
+                    ]),
+                    html.Div(className="usersettingsmenu-container4", children=[
+                        html.Span("Date of Birth", className="usersettingsmenu-text4"),
+                        dcc.Input(
+                            value=user_profile.get("dob", ""),
+                            id={'type': 'user-info', 'field': 'dob'},
+                            type="text",
+                            placeholder="01-01-1990",
+                            className="usersettingsmenu-textinput3 input"
+                        ),
+                    ]),
+                    html.Div(className="usersettingsmenu-container5", children=[
+                        html.Span("Location", className="usersettingsmenu-text5"),
+                        dcc.Input(
+                            value=user_profile.get("location", ""),
+                            id={'type': 'user-info', 'field': 'location'},
+                            type="text",
+                            placeholder="London, UK",
+                            className="usersettingsmenu-textinput4 input"
+                        ),
+                    ]),
+                    html.Div(className="usersettingsmenu-container6", children=[
+                        html.Span("Activity levels", className="usersettingsmenu-text6"),
+                        dcc.Dropdown(
+                            value=activity_profile.get("activity_level", ""),
+                            id={'type': 'user-info', 'field': 'activity_level'},
+                            options=[
+                                {"label": "1. No exercise", "value": "low"},
+                                {"label": "2. Some exercise", "value": "medium"},
+                                {"label": "3. A lot of exercise", "value": "high"},
+                            ],
+                            className="usersettingsmenu-select"
+                        ),
+                    ]),
+                ]),
+                html.Button("Save", id={'type': 'save-btn', 'section': 'user-info'}, className="save-btn")
             ]),
+            # API Settings Container
+            html.Div(className="apisettings-container apisettings-root-class-name", children=[
+                html.Div(className="apisettings-options", children=[
+                    html.H1("API settings", className="apisettings-text"),
+                    html.Div(className="apisettings-container1", children=[
+                        html.Span("OpenAI API key", className="apisettings-apikeys"),
+                        dcc.Input(
+                            value=api_profile.get("openai_api_key", ""),
+                            id={'type': 'api-settings', 'field': 'openai_api_key'},
+                            type="text",
+                            placeholder="rc3****************x3",
+                            className="apisettings-apikeyinput input"
+                        ),
+                    ]),
+                    html.Div(className="apisettings-textqualitysettings", children=[
+                        html.Span("Text Quality", className="apisettings-textqualitydesc"),
+                        dcc.Dropdown(
+                            value=api_profile.get("text_quality_settings", None),
+                            id={'type': 'api-settings', 'field': 'text_quality_settings'},
+                            options=[
+                                {"label": "Base Quality (gpt3.5)", "value": "base"},
+                                {"label": "High Quality (gpt4)", "value": "high"},
+                            ],
+                            className="apisettings-textqualityoptions"
+                        ),
+                    ]),
+                    html.Div(className="apisettings-imagequalitysettings", children=[
+                        html.Span("Image Quality", className="apisettings-imagequalitydesc"),
+                        dcc.Dropdown(
+                            value=api_profile.get("image_quality_settings", None),
+                            id={'type': 'api-settings', 'field': 'image_quality_settings'},
+                            options=[
+                                {"label": "Base Quality (512x512px)", "value": "base"},
+                                {"label": "High Quality (768x2000px)", "value": "high"},
+                            ],
+                            className="apisettings-imagequalityoptions"
+                        ),
+                    ]),
+                ]),
+                html.Button("Save User Info", id={'type': 'save-btn', 'section': 'api-settings'}, className="save-btn"),
 
-        ], className="section-box"),
+
+            ]),
+        ]),
+        
+        # html.Div([
+        #     html.H3("Nutritional Information", className="text-center mb-4 section-header"),
+        #     html.P("This section indicates the recommended daily limits. Press \"Predict\" to get tailor-made predictions for your profile. Edit quantities where required.",
+        #         className="text-center mb-4", id="nutrition-subtitle"),
+        #     dbc.Row(
+        #         dbc.Col(
+        #             dbc.Button("Predict", color="info", className="me-1", id="predict-button"),
+        #             width={"size": 6, "offset": 3},
+        #         ),
+        #         className="mb-4"
+        #     ),
+        #     dbc.Container(fluid=True, children=[
+        #                 dbc.Row([
+        #                     dbc.Col(create_nutritional_card(nutritional_info['daily_macros'], "Daily Macros", "daily_macros"), md=4),
+        #                     dbc.Col(create_nutritional_card(nutritional_info['vitamins'], "Vitamins", "vitamins"), md=4),
+        #                     dbc.Col(create_nutritional_card(nutritional_info['amino_acids'], "Amino Acids", "amino_acids"), md=4),
+        #                 ], className="mb-4"),
+        #                 dbc.Row([
+        #                     dbc.Col(create_nutritional_card(nutritional_info['minerals'], "Minerals", "minerals"), md=4),
+        #                     dbc.Col(create_nutritional_card(nutritional_info['sugars_fibers'], "Sugars & Fibers", "sugars_fibers"), md=4),
+        #                     dbc.Col(create_nutritional_card(nutritional_info['fats'], "Fats", "fats"), md=4),
+        #                 ]),
+
+        #             ]),
+        # # dbc.Row([
+        # #         dbc.Col([
+        # #             dbc.Button("Save Nutritional Info", id={'type': 'save-btn', 'section': 'nutritional-info'}, className="save-btn")
+        # #         ], width={"size": 6, "offset": 3}),
+        # #     ]),
+
+        # ], className="section-box"),
+
         html.Div(id='save-success-notification'),
 
     ], className="main-background")
@@ -229,58 +304,70 @@ from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
 import json
 
+# def callback_functions_profile(app, user_data_instance):
+
+#     @app.callback(
+#         Output('slider-text-output', 'children'),
+#         [Input('activity-level-slider', 'value')]
+#     )
+#     def update_output(value):
+#         return activity_levels[value - 1]
+
+
+
+
+
 def callback_functions_profile(app, user_data_instance):
 
     @app.callback(
-        Output('slider-text-output', 'children'),
-        [Input('activity-level-slider', 'value')]
-    )
-    def update_output(value):
-        return activity_levels[value - 1]
-
-    @app.callback(
         Output('save-success-notification', 'children'),
-        [Input({'type': 'save-btn', 'section': ALL}, 'n_clicks')],
-        [State({'type': 'editable-input', 'index': ALL}, 'value'),
-         State({'type': 'editable-input', 'index': ALL}, 'id')],
+        [
+            Input({'type': 'save-btn', 'section': ALL}, 'n_clicks'),  # This matches the button's ID pattern
+            ],
+        [
+            State({'type': ALL, 'field': ALL}, 'value'),
+            State({'type': ALL, 'field': ALL}, 'id')
+         ],
         prevent_initial_call=True
     )
     def save_section_info(n_clicks, values, ids):
-        if not dash.callback_context.triggered:
+        print('...')
+        if not callback_context.triggered:
             raise PreventUpdate
+        print("click")
+        triggered_id = json.loads(callback_context.triggered[0]['prop_id'].split('.')[0])
+        section = triggered_id['section']
+        print('section', section, time.time() )
+        user_profile_updates = {}
+        api_profile_updates = {}
+        nutritional_info_updates = {}
 
-        triggered_id = json.loads(dash.callback_context.triggered[0]['prop_id'].split('.')[0])
-        print("Button ID Dict:", triggered_id)
-
-        section_updates = {}
-        nutritional_info_subcategories = [
-            'daily_macros', 'vitamins', 'amino_acids', 'minerals', 'sugars_fibers', 'fats'
-        ]
-
-
-        # Process updates 
         for value, id_info in zip(values, ids):
-            # Extract category and field from id_info['index']
-            parts = id_info['index'].split('-')
-            if (parts[0] in nutritional_info_subcategories) or (parts[0] in ['user_profile']):
-                category = parts[0]
-                field = '-'.join(parts[1:])
+            print(value, id_info)
+            section_type = id_info['type']
+            field = id_info['field']
 
-                if category not in section_updates:
-                    section_updates[category] = {}
-                section_updates[category][field] = value
-    
+            if section_type == 'user-info':
+                user_profile_updates[field] = value
+            elif section_type == 'api-settings':
+                api_profile_updates[field] = value
+            elif section_type == 'nutritional-info':
+                category, subfield = field.split('-')
+                if category not in nutritional_info_updates:
+                    nutritional_info_updates[category] = {}
+                nutritional_info_updates[category][subfield] = value
 
-        # Perform the update based on the section
-        if triggered_id['section'] == 'nutritional-info':
-            user_data_instance.update_nutritional_info_bulk(section_updates)
-            print("Updated Nutritional Info:", section_updates)
-        else:  # Assuming all other sections are for user_info
-            user_data_instance.update_user_info_bulk(section_updates)
-            print("Updated User Info:", section_updates)
+        if section == 'user-info':
+            user_data_instance.user_profile.update(user_profile_updates)
+        elif section == 'api-settings':
+            user_data_instance.api_profile.update(api_profile_updates)
+            print('these are the proposed API changes:', api_profile_updates)
 
-        user_data_instance.print_user_info()
-        if triggered_id['section'] == 'nutritional-info':
-            user_data_instance.print_nutrition_info()
+        elif section == 'nutritional-info':
+            for category, updates in nutritional_info_updates.items():
+                if category in user_data_instance.nutritional_info:
+                    user_data_instance.nutritional_info[category].update(updates)
 
-        return "Data saved successfully!"
+        user_data_instance.update_csv_user_data()
+
+        return f"Data in section {section} saved successfully!"
