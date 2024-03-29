@@ -175,7 +175,9 @@ def collate_current_item(json_entry,
 
     # Labels for each segment
     labels = ["Protein", "Carbohydrates", "Total Fat", 
-        "Sugar", "Fiber", "Saturated Fat", "Unsaturated Fat", "Cholesterol",
+        "Sugar", 
+          "Fiber", 
+        "Saturated Fat", "Unsaturated Fat", 
         "Essential", "Conditionally Essential", "Nonessential",
         "Glucose", "Fructose", "Galactose", "Lactose",
         "Soluble Fiber", "Insoluble Fiber",
@@ -189,7 +191,9 @@ def collate_current_item(json_entry,
 
     # Parents for each segment
     parents = [ None, None, None,
-        "Carbohydrates", "Carbohydrates", "Total Fat", "Total Fat", "Total Fat",
+        "Carbohydrates", 
+        "Carbohydrates", 
+        "Total Fat", "Total Fat",
         "Protein", "Protein", "Protein",
         "Sugar", "Sugar", "Sugar", "Sugar",
         "Fiber", "Fiber",
@@ -210,7 +214,6 @@ def collate_current_item(json_entry,
         json_entry.get('fiber', 0), 
         json_entry.get('saturated fat', 0), 
         json_entry.get('unsaturated fat', 0), 
-        json_entry.get('cholesterol', 0),
         # Sum of essential amino acids values
         sum([json_entry.get(aa, 0) for aa in ['histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'threonine', 'tryptophan', 'valine']]),
         # Sum of conditionally essential amino acids values

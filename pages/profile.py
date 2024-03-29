@@ -127,12 +127,13 @@ def create_nutritional_card(info, title, section):
 
 
 def profile_layout(user_data_instance):
-    user_profile = user_data_instance.user_profile
-    api_profile = user_data_instance.api_profile  # Direct access, no ["api_profile"] needed
 
-    # Assuming 'activity_profile' is part of 'user_profile' based on your initial structure
-    activity_profile = user_profile.get("activity_profile", {})  # Provides an empty dict as default if not found
-    nutritional_info = user_data_instance.nutritional_info  # Directly access nutritional_info
+    
+    # Now data contains user_profile, nutritional_info, and api_profile as dictionaries
+    user_profile = user_data_instance.user_profile
+    nutritional_info = user_data_instance.nutritional_info
+    api_profile = user_data_instance.api_profile
+
     # Define the layout
     layout = html.Div([
         # Omitting head elements like styles and scripts, which should be in the assets folder or handled via Dash's external_stylesheets
@@ -194,7 +195,7 @@ def profile_layout(user_data_instance):
                     html.Div(className="usersettingsmenu-container6", children=[
                         html.Span("Activity levels", className="usersettingsmenu-text6"),
                         dcc.Dropdown(
-                            value=activity_profile.get("activity_level", ""),
+                            value=user_profile.get("activity_level", ""),
                             id={'type': 'user-info', 'field': 'activity_level'},
                             options=[
                                 {"label": "1. No exercise", "value": "low"},
@@ -316,58 +317,52 @@ import json
 
 
 
+from dash import callback_context
+import json
+import time
 
 def callback_functions_profile(app, user_data_instance):
-
     @app.callback(
         Output('save-success-notification', 'children'),
-        [
-            Input({'type': 'save-btn', 'section': ALL}, 'n_clicks'),  # This matches the button's ID pattern
-            ],
-        [
-            State({'type': ALL, 'field': ALL}, 'value'),
-            State({'type': ALL, 'field': ALL}, 'id')
-         ],
+        [Input({'type': 'save-btn', 'section': ALL}, 'n_clicks')],
+        [State({'type': ALL, 'field': ALL}, 'value'),
+         State({'type': ALL, 'field': ALL}, 'id')],
         prevent_initial_call=True
     )
     def save_section_info(n_clicks, values, ids):
         print('...')
         if not callback_context.triggered:
             raise PreventUpdate
-        print("click")
+
         triggered_id = json.loads(callback_context.triggered[0]['prop_id'].split('.')[0])
         section = triggered_id['section']
-        print('section', section, time.time() )
-        user_profile_updates = {}
-        api_profile_updates = {}
-        nutritional_info_updates = {}
+
+        updates = []  # Prepare updates as a list of tuples or dicts
 
         for value, id_info in zip(values, ids):
             print(value, id_info)
             section_type = id_info['type']
             field = id_info['field']
 
-            if section_type == 'user-info':
-                user_profile_updates[field] = value
-            elif section_type == 'api-settings':
-                api_profile_updates[field] = value
-            elif section_type == 'nutritional-info':
-                category, subfield = field.split('-')
-                if category not in nutritional_info_updates:
-                    nutritional_info_updates[category] = {}
-                nutritional_info_updates[category][subfield] = value
+            # Construct the attribute name based on section type and field
+            attribute_name = f"{section_type}.{field}"
 
-        if section == 'user-info':
-            user_data_instance.user_profile.update(user_profile_updates)
-        elif section == 'api-settings':
-            user_data_instance.api_profile.update(api_profile_updates)
-            print('these are the proposed API changes:', api_profile_updates)
+            # Assume value is a tuple (value, unit) for attributes with units, or just a value otherwise
+            if isinstance(value, tuple):
+                update_record = (user_data_instance.user_id, attribute_name, value[0], value[1])
+            else:
+                update_record = (user_data_instance.user_id, attribute_name, value, '')
 
-        elif section == 'nutritional-info':
-            for category, updates in nutritional_info_updates.items():
-                if category in user_data_instance.nutritional_info:
-                    user_data_instance.nutritional_info[category].update(updates)
+            updates.append(update_record)
 
-        user_data_instance.update_csv_user_data()
+        # Now, process these updates in your UserData instance
+        # This part needs to be adapted based on how you implement the update logic in UserData
+        # Assuming UserData has a method to process updates in the desired format:
+        user_data_instance.process_updates(updates)
 
-        return f"Data in section {section} saved successfully!"
+        print(f"Data in section {section} saved successfully at {time.time()}")
+
+        return "Data saved successfully!"
+
+# You'll need to implement the process_updates method in UserData or adjust the existing update methods
+# to handle the updates in the new format.

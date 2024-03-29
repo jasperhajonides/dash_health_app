@@ -21,7 +21,7 @@ class NutritionExtraction:
             'macros_detailed': ['fiber', 'saturated fat', 'unsaturated fat', 'sugar'],
             'sugar_types': ['glucose', 'fructose', 'galactose', 'lactose'],
             'fiber_types': ['soluble fiber', 'insoluble fiber'],
-            'fat_types': ['cholesterol'],
+            'fat_types': [],
             'essential amino acids': ['histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'threonine', 'tryptophan', 'valine'],
             'conditionally essential amino acids': ['arginine', 'cysteine', 'glutamine', 'glycine', 'proline', 'tyrosine'],
             'nonessential amino acids': ['alanine', 'aspartic acid', 'asparagine', 'glutamic acid', 'serine', 'selenocysteine', 'pyrrolysine'],
