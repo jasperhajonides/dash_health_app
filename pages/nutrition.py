@@ -245,59 +245,6 @@ def nutrition_page():
 
 
 
-            #     # Weight Input with Update Button
-            #     dbc.InputGroup([
-
-            #         html.Div(
-            #         id='display-image',
-            #         style={
-            #             'width': '128px',  # Set the width for the image
-            #             'height': '128px',  # Set the height for the image
-            #             'vertical-align': 'top',
-            #             'margin': '0 auto',  # Center align if desired
-            #             'border': '2px dashed #ccc',  # Optional: add a dashed border to indicate it's a placeholder area
-            #             'display': 'flex',  # Use flex layout
-            #             'justify-content': 'center',  # Center horizontally
-            #             'align-items': 'center',  # Center vertically
-            #             'background-image': 'url("/assets/placeholder-icon.svg")',  # Assuming you have a placeholder icon in your assets folder
-            #             'background-repeat': 'no-repeat',
-            #             'background-position': 'center'
-            #         }
-            #     ),
-            #         # Meal Dropdown with Label
-            #         html.Div([
-            #             dbc.Label("Meal:", style={'marginRight': '10px', 'alignSelf': 'center'}),
-            #             dcc.Dropdown(
-            #                 id='meal-dropdown',
-            #                 options=[
-            #                     {'label': 'Breakfast', 'value': 'Breakfast'},
-            #                     {'label': 'Lunch', 'value': 'Lunch'},
-            #                     {'label': 'Dinner', 'value': 'Dinner'},
-            #                     {'label': 'Dessert', 'value': 'Dessert'},
-            #                     {'label': 'Other', 'value': 'Other'}
-            #                 ],
-            #                 value='Breakfast',  # Default value
-            #                 style={'width': '150px', 'display': 'inline-block', 'marginBottom': '0', 'marginTop': '0'}
-            #             )
-            #         ], style={'display': 'flex', 'alignItems': 'center', 'paddingRight': '20px'}),
-                    
-            #         # Weight Input and Update Button
-            #         dbc.InputGroupText("Weight (g):", style={'alignSelf': 'center'}),
-            #         dbc.Input(id="weight-input", type="number", min=0, step=1, style={'alignSelf': 'center'}),
-            #         dbc.Button("Update", id="update-nutrition-values", n_clicks=0, color="primary", style={'marginLeft': '15px', 'alignSelf': 'center'})
-            #     ], style={'marginBottom': '10px', 'display': 'flex', 'alignItems': 'center'}),
-
-
-
-
-
-            #     # Placeholder for Nutritional Values
-            #     html.Div(id='dynamic-nutritional-values')
-            # ], style={'height': '1150px', 'border': '1px solid #ddd', 'borderRadius': '5px', 'padding': '10px'}),
-
-
-
-
 
             html.Div([
                 dbc.Button("Add", id="add-to-csv-button", color="primary", className="mb-3")
