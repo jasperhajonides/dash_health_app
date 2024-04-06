@@ -452,6 +452,26 @@ def register_callbacks_nutrition(app):
         |     \(  <_> |  <_> ) /_/ | 
         \___  / \____/ \____/\____ | 
             \/                    \/ 
+
+        Stores JSON data extracted from an image or input text into a specified storage mechanism, potentially utilizing AI for processing, depending on the toggle state.
+
+        Parameters:
+        - n_clicks (int): The number of times the submit button has been clicked. Used to trigger the function.
+        - n_clicks_row (int): The number of times a specific row button has been clicked, if applicable.
+        - stored_image_data (str): Base64 encoded string of the image data from which to extract information.
+        - input_text (str): Text input provided by the user, which may contain additional information or instructions.
+        - ai_toggle_on (bool): A boolean flag indicating whether AI processing mode is enabled or not.
+
+        Returns:
+        - None. The function is expected to store the processed data in a predefined location or format, not return it.
+
+        Example:
+        Assuming the function is properly connected to a UI with the necessary components:
+        - User uploads an image and/or enters text.
+        - User toggles AI processing mode if desired.
+        - User clicks the submit button, triggering this function.
+
+        Note: This docstring assumes the function's purpose based on its parameters. The actual implementation details are not provided.
         """
         ctx = dash.callback_context
         triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
