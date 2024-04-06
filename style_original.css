@@ -1,0 +1,138 @@
+@font-face {
+    font-family: 'Libre Franklin Light';
+    src: url('path/to/LibreFranklin-Light.ttf') format('truetype');
+}
+body {
+    font-family: 'Libre Franklin Light', sans-serif;
+}
+
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    padding: 20px;
+}
+
+.chart-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10; /* Ensure this is above the chart */
+    text-align: center;
+    width: 100%; /* Optional, adjust as needed */
+}
+
+/* The Name on the sidebar */
+
+.gradient-text {
+    font-weight: bold; /* Bold font */
+    background: linear-gradient(to right, #2FBBA7, #0A446D); /* Gradient color */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline;
+}
+
+.gradient-input {
+    border: 0.25px solid transparent !important;
+    background-image: linear-gradient(white, white), linear-gradient(to right, #008080, #00008B) !important;
+    background-origin: border-box !important;
+    background-clip: content-box, border-box !important;
+}
+
+
+/* SIDEBAR ICONS */
+
+.icon-container:hover .dash-iconify {
+    color: #005a34; /* Example hover color */
+}
+
+.icon-container {
+    cursor: pointer;
+}
+
+
+/* Dairly panel Logging items */
+
+/* Make the table header sticky */
+.sticky-header th {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 1;
+}
+
+/* Initial style for meal type rows -- not sticky by default */
+.meal-type-row th {
+    background-color: #eee;
+    z-index: 2;
+}
+
+/* You'll dynamically add this class to make a meal type row sticky */
+.sticky-meal-type th {
+    position: sticky;
+    top: 40px; /* Adjust based on your header height */
+    background-color: #eee;
+    z-index: 3;
+}
+
+
+/*  Style for current selection item, tabs. changing between tabs */
+
+.fade-in-content {
+    animation: fadeInAnimation 0.6s;
+}
+
+@keyframes fadeInAnimation {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+
+/* Style for the Profile page */
+/* Nutritional Cards Styling */
+.card {
+    box-shadow: 1px 1px 3px #88a09e; /* Tapestry teal colored shadow */
+    border-color: #7cb7b8; /* Ariel blue outline */
+}
+
+.card-header {
+    background-color: #7cb7b8; /* Ariel blue background */
+    color: white;
+}
+
+/* Subtitle Styling */
+#nutrition-subtitle {
+    max-width: 80%;
+    margin: 0 auto; /* Centering the subtitle */
+    font-size: 16px;
+}
+
+/* Predict Button Styling */
+#predict-button {
+    background-color: #7cb7b8; /* Ariel blue background */
+    border: none;
+    box-shadow: 2px 2px 5px #88a09e; /* Slight shadow for depth */
+    border-radius: 20px; /* Rounded corners */
+    padding: 10px 20px;
+    font-size: 18px;
+    color: white; /* Text color */
+}
+
+#predict-button:hover {
+    background-color: #69a1a5; /* Slightly darker shade on hover */
+}
+
+/* Main background color */
+.main-background {
+    background-color: #f8f9fa; /* Very light grey/green */
+}
+
+/* Section Boxes Styling */
+.section-box {
+    background-color: white; /* White background for the content */
+    border-radius: 25px; /* Significant rounded corners */
+    padding: 20px;
+    margin-bottom: 20px; /* Space between sections */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Adds a subtle shadow for depth */
+}

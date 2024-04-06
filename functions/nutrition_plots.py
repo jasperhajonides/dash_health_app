@@ -8,6 +8,8 @@ from dash import html
 from datetime import datetime, timedelta, time
 import dash_daq as daq
 
+from functions.nutrition_df_helper_functions import load_and_filter_df
+
 def create_nutrient_pie_chart():
     try:
         # Get the current script directory (functions/nutrition_plots.py)
@@ -95,7 +97,7 @@ def create_calories_line_plot():
 
 
 
-def calculate_todays_nutrition():
+def calculate_todays_nutrition(df):
     try:
 
          # Get the current script directory (functions/nutrition_plots.py)
@@ -103,19 +105,19 @@ def calculate_todays_nutrition():
         root_dir = os.path.dirname(current_script_dir)
         csv_path = os.path.join(root_dir, 'data', 'nutrition_entries.csv')
 
-        df = pd.read_csv(csv_path)
-        df['date'] = pd.to_datetime(df['date'])
-        today = datetime.now().date()
+        # df = pd.read_csv(csv_path)
+        # df['date'] = pd.to_datetime(df['date'])
+        # today = datetime.now().date()
 
         # Filter for today's entries
-        df_today = df[df['date'].dt.date == today]
+        # df_today = df[df['date'].dt.date == today]
 
         # Calculate the sums
-        protein_today = df_today['protein'].sum()
-        fat_today = df_today['fat'].sum()
-        calories_today = df_today['calories'].sum()
-        carbs_today = df_today['carbohydrates'].sum()
-        sugar_today = df_today['sugar'].sum()
+        protein_today = df['protein'].sum()
+        fat_today = df['fat'].sum()
+        calories_today = df['calories'].sum()
+        carbs_today = df['carbohydrates'].sum()
+        sugar_today = df['sugar'].sum()
 
         return protein_today, fat_today, calories_today, carbs_today, sugar_today
     except Exception as e:
@@ -124,17 +126,9 @@ def calculate_todays_nutrition():
         return 0, 0, 0, 0, 0
     
 
-
-import base64
-from dash import html
-
-import base64
-from dash import html
-
-import base64
-from dash import html
-
-def create_circular_progress(value, target, unit, description, color, layout_direction='below', radius=45, fontsize_text=16, fontsize_num=36):
+def create_circular_progress(value, target, unit, description, color, layout_direction='below',
+                              radius=45, fontsize_text=16, fontsize_num=36, stroke_width_backgr=4, 
+                              stroke_width_complete=7, stroke_dashoffset=0):
     value = round(value)  # Round the value to an integer
     percentage = min(value / target, 1)  # Ensure percentage doesn't exceed 100%
     circumference = 2 * 3.14 * radius  # Circumference of the circle
@@ -144,12 +138,12 @@ def create_circular_progress(value, target, unit, description, color, layout_dir
     stroke_dasharray = f"{stroke_length} {circumference}"
 
     # Offset to start the stroke from the top of the circle
-    stroke_dashoffset = 0 #-circumference / 4
+    # stroke_dashoffset = 0 #-circumference / 4
 
     svg_circle = f'''
     <svg width="{2*radius+10}" height="{2*radius+10}" viewBox="0 0 {2*radius+10} {2*radius+10}" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="{radius+5}" cy="{radius+5}" r="{radius}" fill="transparent" stroke="#ddd" stroke-width="4"></circle>
-        <circle cx="{radius+5}" cy="{radius+5}" r="{radius}" fill="transparent" stroke="{color}" stroke-width="7"
+        <circle cx="{radius+5}" cy="{radius+5}" r="{radius}" fill="transparent" stroke="#ddd" stroke-width="{stroke_width_backgr}"></circle>
+        <circle cx="{radius+5}" cy="{radius+5}" r="{radius}" fill="transparent" stroke="{color}" stroke-width="{stroke_width_complete}"
                 stroke-dasharray="{stroke_dasharray}" stroke-dashoffset="{stroke_dashoffset}"
                 style="transform: rotate(-90deg); transform-origin: center;"></circle>
         <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" 
@@ -176,10 +170,117 @@ def create_circular_progress(value, target, unit, description, color, layout_dir
         html.Div(f"{unit} {description}", style=text_div_style)
     ], style=container_style)
 
+import base64
+from dash import html
+
+# def create_half_circle_progress(value, target, unit, description, color, layout_direction='below', radius=45, fontsize_text=16, fontsize_num=36):
+#     value = round(value, 1)  # Round the value to one decimal place
+#     percentage = min(value / target, 1)  # Ensure percentage doesn't exceed 100%
+#     # Full circumference for a complete circle
+#     full_circumference = 2 * 3.14 * radius
+    
+#     # Only use half of the circumference for the stroke dash since it's a half-circle
+#     half_circumference = full_circumference / 2
+#     # Calculate the stroke length based on the percentage
+#     stroke_length = percentage  * full_circumference 
+
+#     # The stroke-dasharray uses the calculated stroke length and the full circumference to create a gap for the remaining part
+#     stroke_dasharray = f"{stroke_length} {full_circumference}"
+#     # The stroke-dashoffset moves the starting point of the stroke to 9 o'clock
+#     stroke_dashoffset = 130 #half_circumference / 2
+#     print('--------------',value,'value', percentage, ' percentage', stroke_length, 'stroke length', half_circumference, 'half_circumference \n', stroke_dashoffset, ' stroke_dashoffset')
+
+#     svg_circle = f'''
+#     <svg width="{2*radius+20}" height="{radius+20}" viewBox="0 0 {2*radius+20} {radius+20}" xmlns="http://www.w3.org/2000/svg">
+#         <circle cx="{radius+10}" cy="{radius+10}" r="{radius}" fill="none" stroke="#ddd" stroke-width="4"
+#         style="transform: rotate(-90deg); transform-origin: {radius+10}px {radius+10}px;"></circle>
+#         <circle cx="{radius+10}" cy="{radius+10}" r="{radius}" fill="none" stroke="{color}" stroke-width="7"
+#         stroke-dasharray="{stroke_dasharray}" stroke-dashoffset="{stroke_dashoffset}"
+#         style="transform: rotate(-90deg); transform-origin: {radius+10}px {radius+10}px;"></circle>
+#         <text x="{radius+10}" y="{radius+15}" dominant-baseline="middle" text-anchor="middle"
+#         style="fill: black; font-size: {fontsize_num}px; font-family: Arial;">{value} {unit}</text>
+#     </svg>
+#     '''
+
+#     encoded_svg = f"data:image/svg+xml;base64,{base64.b64encode(svg_circle.encode()).decode()}"
+
+#     img_style = {"width": f"{2*radius+20}px", "height": f"{radius+20}px"}
+
+#     text_div_style = {'fontSize': f'{fontsize_text}px', 'textAlign': 'center', 'margin': '0'}
+
+#     if layout_direction == 'below':
+#         container_style = {"display": "flex", "flexDirection": "column", "alignItems": "center", "padding": "0"}
+#         text_div_style.update({'marginTop': '5px'})
+#     elif layout_direction == 'right':
+#         container_style = {"display": "flex", "alignItems": "center", "padding": "0"}
+#         img_style.update({'marginRight': '10px'})
+
+#     return html.Div([
+#         html.Img(src=encoded_svg, style=img_style),
+#         html.Div(description, style=text_div_style)
+#     ], style=container_style)
 
 
-def create_nutrition_display():
-    protein, fat, calories, carbs, sugar = calculate_todays_nutrition()
+import base64
+from dash import html
+
+def create_longitudinal_box_with_progress(value, target, label, color, box_color="#ddd", gradient_color_start="#e0e0e0", gradient_color_end="#4CAF50", layout_direction='below', radius=60, fontsize_text=16, fontsize_num=12, stroke_width_backgr=2.5, stroke_width_complete=5, stroke_dashoffset=0):
+    value = round(value)  # Round the value to an integer
+    percentage = min(value / target, 1)  # Ensure percentage doesn't exceed 100%
+    circumference = 2 * 3.14 * radius  # Circumference of the circle
+    stroke_length = percentage * circumference
+
+    # The dash array creates the stroke length
+    stroke_dasharray = f"{stroke_length} {circumference}"
+
+    # SVG for the circular progress
+    svg_circle = f'''
+    <svg width="{2*radius+10}" height="{2*radius+10}" viewBox="0 0 {2*radius+10} {2*radius+10}" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="{radius+5}" cy="{radius+5}" r="{radius}" fill="transparent" stroke="#ddd" stroke-width="{stroke_width_backgr}"></circle>
+        <circle cx="{radius+5}" cy="{radius+5}" r="{radius}" fill="transparent" stroke="{color}" stroke-width="{stroke_width_complete}"
+                stroke-dasharray="{stroke_dasharray}" stroke-dashoffset="{stroke_dashoffset}"
+                style="transform: rotate(-90deg); transform-origin: center;"></circle>
+        <defs>
+            <linearGradient id="grad1" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:{gradient_color_start};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:{gradient_color_end};stop-opacity:1" />
+            </linearGradient>
+        </defs>
+    </svg>
+    '''
+    encoded_svg = f"data:image/svg+xml;base64,{base64.b64encode(svg_circle.encode()).decode()}"
+
+    # Adjust box and inner content styling for spacing
+    box_style = {
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "center",
+        "border": f"2px solid {box_color}",
+        "borderRadius": "10px",
+        "padding": "10px",
+        "backgroundColor": gradient_color_start,
+        "backgroundImage": f"linear-gradient(to top right, {gradient_color_start}, {gradient_color_end})",
+        "width": f"{2*radius+20+20}px",  # Adjust width to fit the circle nicely with some padding
+        "height": f"{4*radius+20}px",  # Adjust height according to your needs
+        "boxShadow": "0 4px 8px rgba(0,0,0,0.1)"
+    }
+
+    # Reduce space between elements
+    element_style = {'margin': '5px 0'}
+
+    return html.Div([
+        html.Img(src=encoded_svg, style={"width": f"{2*radius}px", "height": f"{2*radius}px", "margin": "0 0 -5px 0"}),  # Reduce top margin and move up
+        html.Div(f"{value} g", style={'fontSize': f'{fontsize_num}px', 'textAlign': 'center', 'margin': '0 0 -17px 0'}),  # Eliminate extra margin
+        html.Div(label, style={'fontSize': f'{fontsize_text}px', 'textAlign': 'center', 'margin': '5px 0 0 0'}),  # Minimize bottom margin
+    ], style=box_style)
+
+
+
+def create_nutrition_display(selected_date_input):
+
+    df = load_and_filter_df(selected_date_input)
+
+    protein, fat, calories, carbs, sugar = calculate_todays_nutrition(df)
 
     nutrition_values = [
         create_circular_progress(protein, 140, "g", "Protein", "#ff6384"),

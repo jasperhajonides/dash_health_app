@@ -106,7 +106,6 @@ def collate_current_item(json_entry,
 
     def plot_stacked_amino_acid_chart(json_entry, recommended_intakes_mg):
         amino_acid_names, completed_percentages, remaining_percentages, _ = create_stacked_amino_acid_plot(json_entry, recommended_intakes_mg)
-        print('completed_percentages::::::', completed_percentages)
         # Setting up custom hover text for both parts
         custom_hover_texts = [f"{round(json_entry.get(amino_acid, 0))}mg<br>({round((json_entry.get(amino_acid, 0) / recommended_intakes_mg[amino_acid]) * 100)}%)" for amino_acid in amino_acid_names]
         
@@ -176,7 +175,9 @@ def collate_current_item(json_entry,
 
     # Labels for each segment
     labels = ["Protein", "Carbohydrates", "Total Fat", 
-        "Sugar", "Fiber", "Saturated Fat", "Unsaturated Fat", "Cholesterol",
+        "Sugar", 
+          "Fiber", 
+        "Saturated Fat", "Unsaturated Fat", 
         "Essential", "Conditionally Essential", "Nonessential",
         "Glucose", "Fructose", "Galactose", "Lactose",
         "Soluble Fiber", "Insoluble Fiber",
@@ -190,7 +191,9 @@ def collate_current_item(json_entry,
 
     # Parents for each segment
     parents = [ None, None, None,
-        "Carbohydrates", "Carbohydrates", "Total Fat", "Total Fat", "Total Fat",
+        "Carbohydrates", 
+        "Carbohydrates", 
+        "Total Fat", "Total Fat",
         "Protein", "Protein", "Protein",
         "Sugar", "Sugar", "Sugar", "Sugar",
         "Fiber", "Fiber",
@@ -211,7 +214,6 @@ def collate_current_item(json_entry,
         json_entry.get('fiber', 0), 
         json_entry.get('saturated fat', 0), 
         json_entry.get('unsaturated fat', 0), 
-        json_entry.get('cholesterol', 0),
         # Sum of essential amino acids values
         sum([json_entry.get(aa, 0) for aa in ['histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'threonine', 'tryptophan', 'valine']]),
         # Sum of conditionally essential amino acids values
@@ -358,11 +360,50 @@ def collate_current_item(json_entry,
 
 
     layout = html.Div([
-            # Pie chart on the left
-            # Food name and calories on the right
-                html.H4(json_entry.get('name', ''), style={'fontSize': '22px', 'textAlign': 'center'}),
-                html.P([f"{json_entry.get('calories', '')} ", html.Sub("kcal")], style={'fontSize': '24px', 'textAlign': 'center'}),
-        html.H5(meal_type, style={'textAlign': 'center', 'paddingBottom': '10px'}),
+
+
+        # Main horizontal layout
+        html.Div([
+            # Circular progress on the left, adjusted to align bottom with the right side elements
+            html.Div([
+                create_circular_progress(json_entry.get('calories', 0), 3400, " ", "Daily Calories", "#4CAF50", 
+                                        layout_direction='below', radius=65, fontsize_text=16, fontsize_num=30, 
+                                        stroke_width_backgr=8, stroke_width_complete=12, stroke_dashoffset=0),
+            ], style={'flex': '1', 'padding': '10px', 'display': 'flex', 'alignItems': 'flex-end'}),
+
+            # Right side vertical layout
+            html.Div([
+                # Food name and calories
+                html.Div([
+                    html.H4(json_entry.get('name', ''), style={'fontSize': '22px', 'textAlign': 'center'}),
+                    html.P([f"{json_entry.get('calories', '')} ", html.Sub("kcal")], style={'fontSize': '24px', 'textAlign': 'center'}),
+                    html.H5(meal_type, style={'textAlign': 'center', 'paddingBottom': '10px'}),
+                ], style={'paddingBottom': '20px'}),
+                
+                # Horizontal layout for the three nutritional values, closer together
+                html.Div([
+                    create_longitudinal_box_with_progress(
+                        json_entry.get('carbohydrates', 0), 350, "Carbs", "#0b67b5", 
+                        box_color="#2678bf", gradient_color_start="#83B3DB", gradient_color_end="#99c4e8", 
+                        layout_direction='below', radius=20, fontsize_text=13, fontsize_num=20, 
+                        stroke_width_backgr=2.5, stroke_width_complete=5, stroke_dashoffset=0
+                    ),
+                    create_longitudinal_box_with_progress(
+                        json_entry.get('protein', 0), 250, "Protein", "#0c96a8", 
+                        box_color="#42b4c2", gradient_color_start="#8CD3DB", gradient_color_end="#b0e2e8", 
+                        layout_direction='below', radius=20, fontsize_text=13, fontsize_num=20, 
+                        stroke_width_backgr=2.5, stroke_width_complete=5, stroke_dashoffset=0
+                    ),
+                    create_longitudinal_box_with_progress(
+                        json_entry.get('fat', 0), 120, "Fat", "#1fab69", 
+                        box_color="#5dc795", gradient_color_start="#A0DBBF", gradient_color_end="#b8e0cd", 
+                        layout_direction='below', radius=20, fontsize_text=13, fontsize_num=20, 
+                        stroke_width_backgr=2.5, stroke_width_complete=5, stroke_dashoffset=0
+                    ),
+                ], style={'display': 'flex', 'justifyContent': 'space-between', 'gap': '10px'}),  # Adjusted for closer elements
+            ], style={'flex': '2', 'padding': '10px', 'display': 'flex', 'flexDirection': 'column', 'justifyContent': 'space-between'}),
+
+        ], style={'display': 'flex', 'flexDirection': 'row'}),
 
 
         html.Div(

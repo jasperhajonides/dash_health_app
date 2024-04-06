@@ -12,9 +12,10 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 
 import dash_iconify as di
+from dash_iconify import DashIconify
 
 from dash import callback_context
-from dash.dependencies import Input, Output, State, ALL
+from dash.dependencies import Input, Output, State, ALL, ClientsideFunction
 from dash.exceptions import PreventUpdate
 import pandas as pd
 from datetime import datetime
@@ -36,8 +37,7 @@ from llm_code.prompt_generation import PromptGenerator
 from pages.nutrition_page_parts.current_item import collate_current_item
 from pages.nutrition_page_parts.daily_overview import create_daily_feed
 from pages.nutrition_page_parts.sample_food_item import *
-from pages.history_ui import generate_settings_offcanvas
-from pages.daily_logbooks import create_logbook_panel
+from pages.nutrition_page_parts.daily_logbooks import create_logbook_panel
 
 
 # Function to parse the contents of the uploaded file
@@ -56,20 +56,22 @@ def format_json_to_html(json_data):
     else:
         return json_data  # For basic data types
     
-def nutrition_numbers_layout():
-    # Assuming nutrition_numbers_container is a layout component
-    return create_nutrition_display()
+# def nutrition_numbers_layout():
+#     # Assuming nutrition_numbers_container is a layout component
+#     return create_nutrition_display()
 
-def combined_plots_layout():
-    # Create a layout that contains both the nutrient pie chart and the calories line plot side-by-side
-    return html.Div([
-        dcc.Graph(figure=create_nutrient_pie_chart(), style={'width': '50%', 'display': 'inline-block'}),
-        dcc.Graph(figure=create_calories_line_plot(), style={'width': '50%', 'display': 'inline-block'})
-    ])
+# def combined_plots_layout():
+#     # Create a layout that contains both the nutrient pie chart and the calories line plot side-by-side
+#     return html.Div([
+#         dcc.Graph(figure=create_nutrient_pie_chart(), style={'width': '50%', 'display': 'inline-block'}),
+#         dcc.Graph(figure=create_calories_line_plot(), style={'width': '50%', 'display': 'inline-block'})
+#     ])
 
-# List of carousel item functions
-carousel_items = [nutrition_numbers_layout, combined_plots_layout]
-
+# # List of carousel item functions
+# carousel_items = [
+#     lambda: create_nutrition_display('test argument'), 
+#     combined_plots_layout
+# ]
 
 
 # Current file directory
@@ -98,10 +100,6 @@ food_names = df_database['Food Name'].dropna().unique().tolist()
 #     }
 # )
 
-# # define the 
-# settings_offcanvas = generate_settings_offcanvas(
-#     settings_offcanvas_id="settings-offcanvas"
-# )
 
 def nutrition_page():
 
@@ -110,35 +108,44 @@ def nutrition_page():
 
     create_logbook_panel(),
 
-    html.H2("Nutritional Information", className="text-center mb-3"),
-
-     # Carousel Content
-    html.Div([
-        # Left navigation button
-        html.Div(
-            dbc.Button('<', id='carousel-left-btn', color='light', className='carousel-btn', 
-                        style={'height': '80px', 'width': '40px'}),
-            style={'position': 'absolute', 'left': '0', 'top': '50%', 'transform': 'translateY(-50%)'}
-        ),
-
-        # Carousel content container
-        html.Div(id='carousel-content', className='carousel-content', 
-                    style={'height': '400px', 'overflow': 'hidden'}),
-
-        # Right navigation button
-        html.Div(
-            dbc.Button('>', id='carousel-right-btn', color='light', className='carousel-btn', 
-                        style={'height': '80px', 'width': '40px'}),
-            style={'position': 'absolute', 'right': '0', 'top': '50%', 'transform': 'translateY(-50%)'}
-        ),
-    ], style={'position': 'relative', 'height': '400px', 'margin-left': 'auto', 'margin-right': 'auto', 'width': '100%'}),
-
-    html.H3("Enter Nutritional Data", className="mb-2"),
-    html.P("Enter an image of your intake and/or a description:", className="mb-2"),
+    html.H3("Enter Nutritional Data", className="text-center mb-2"),
+    html.P("Enter an image of your intake and/or a description:", className="text-center mb-2"),
 
 
 # Combined input bar with '✨' AI-toggle, camera icon, and submit button
     html.Div([
+
+        # displaying the image
+        html.Div(
+            children=[
+                # Your 'display-image' div
+                html.Div(
+                    id='display-image',
+                    style={
+                        'width': '128px',  # Set the width for the image
+                        'height': '128px',  # Set the height for the image
+                        'vertical-align': 'top',
+                        'margin': '0 auto',  # This centers the image in the flex container
+                        'border': '2px dashed #ccc',  # Optional: add a dashed border
+                        'display': 'flex',  # Use flex layout to center the content of 'display-image'
+                        'justify-content': 'center',  # Center horizontally inside 'display-image'
+                        'align-items': 'center',  # Center vertically inside 'display-image'
+                        'background-image': 'url("/assets/placeholder-icon.svg")',
+                        'background-repeat': 'no-repeat',
+                        'background-position': 'center'
+                    }
+                ),
+            ],
+            # Styles for the outer container
+            style={
+                'display': 'flex',  # Use flexbox to enable centering
+                'justify-content': 'center',  # Center horizontally in the outer container
+                'width': '100%',  # Take the full width of the parent, adjust as needed
+                'padding': '20px 0',  # Optional padding, adjust as needed
+            }
+        ),
+
+
 
     dbc.InputGroup([
 
@@ -151,8 +158,12 @@ def nutrition_page():
                 style={'display': 'block', 'margin': '10px auto'}  # Centering the switch
             ),
 
-            # Your other input components...
         ]),
+
+
+        # Custom Text Input for AI mode
+        dbc.Input(id='nutritional-text-input', type="search", placeholder="Optional: add details about intake", className='gradient-input', style={'display': 'none'}),
+        dbc.Input(id='food-names-input', type="search", placeholder="Search food items", style={'display': 'block'}),
 
         dcc.Upload(
             id='upload-image',
@@ -160,13 +171,16 @@ def nutrition_page():
             style={'width': '38px', 'height': '38px', 'position': 'relative', 'overflow': 'hidden', 'display': 'inline-block'},
             multiple=True
         ),
-        # Custom Text Input for AI mode
-        dbc.Input(id='nutritional-text-input', type="search", placeholder="Optional: add details about intake", className='gradient-input', style={'display': 'none'}),
-        dbc.Input(id='food-names-input', type="search", placeholder="Search food items", style={'display': 'block'}),
+
         dbc.Button("Submit", id="submit-nutrition-data", color="primary", style={'borderRadius': '0 50px 50px 0'}),
     ], style={'width': '65%', 'margin': '0 auto', 'borderRadius': '50px', 'border': '2px solid grey'}),
     html.Div(id='suggestions-container', style={'position': 'absolute', 'width': '35%', 'maxHeight': '300px', 'overflowY': 'auto', 'background': 'white', 'border': '1px solid lightgrey', 'zIndex': '1000'}),  # Container for suggestions
     ], style={'padding-bottom': '24px', 'text-align': 'center'}),
+
+
+    # images
+    html.Div([]),
+
 
 
 
@@ -176,20 +190,14 @@ def nutrition_page():
 
 
     # Display entered item title
-    html.H3("Entered item:", className="text-center"),
+    html.H3("Current item:", className="text-center"),
    # Section for displaying the image, response text, and nutritional values
     html.Div([
-        # Left part for the image
-        html.Div(id='display-image', style={
-            'display': 'none',  # Initially hidden
-            'width': '256px',  # Set the width for the image
-            'height': '256px',  # Set the height for the image
-            'vertical-align': 'top',
-            'margin': '0 auto'  # Center align if desired
-        }),
+      
 
         # Right part for response text and nutritional values
         html.Div([
+
             # Div for response text
             html.Div(id='response-text-output', style={
                 'fontFamily': 'Courier New',
@@ -199,12 +207,81 @@ def nutrition_page():
                 'borderRadius': '5px'  # Optional: rounded corners for the box
             }),
             ############## nutritional values input 
-            # Div for nutritional values
-            
-            # Div for Weight Input and Nutritional Values
+
             html.Div([
+            dcc.Tabs(id="tabs", value='tab-1', children=[
+                dcc.Tab(
+                    label='Macros', value='tab-1',
+                    style={'borderRadius': '15px 15px 0 0', 'marginRight': '5px', 'padding': '6px 10px', 'backgroundColor': 'rgba(158, 219, 224, 1)'},
+                    selected_style={'backgroundColor': '#ffffff', 'border': '1px solid #d6d6d6', 'borderBottom': 'none', 'color': 'black', 'borderRadius': '15px 15px 0 0', 'padding': '6px 10px'}
+                ),
+                dcc.Tab(
+                    label='Micronutrients', value='tab-2', 
+                    style={'borderRadius': '15px 15px 0 0', 'marginRight': '5px', 'padding': '6px 10px', 'backgroundColor': 'rgba(158, 219, 224, 1)', 'zIndex': '1002'},
+                    selected_style={'backgroundColor': '#ffffff', 'border': '1px solid #d6d6d6', 'borderBottom': 'none', 'color': 'black', 'borderRadius': '15px 15px 0 0', 'padding': '6px 10px'}
+                ),
+                dcc.Tab(
+                    label='Sugars', value='tab-3',
+                    style={'borderRadius': '15px 15px 0 0', 'marginRight': '5px', 'padding': '6px 10px', 'backgroundColor': 'rgba(158, 219, 224, 1)'},
+                    selected_style={'backgroundColor': '#ffffff', 'border': '1px solid #d6d6d6', 'borderBottom': 'none', 'color': 'black', 'borderRadius': '15px 15px 0 0', 'padding': '6px 10px'}
+                ),
+                 dcc.Tab(
+                    label='Diet', value='tab-4',
+                    style={'borderRadius': '15px 15px 0 0', 'marginRight': '5px', 'padding': '6px 10px', 'backgroundColor': 'rgba(158, 219, 224, 1)'},
+                    selected_style={'backgroundColor': '#ffffff', 'border': '1px solid #d6d6d6', 'borderBottom': 'none', 'color': 'black', 'borderRadius': '15px 15px 0 0', 'padding': '6px 10px'}
+                ),
+            ], style={'height': '36px',
+                       'alignItems': 'center',
+                        'zIndex': '1001', 'position': 
+                        'relative', 
+                        'marginBottom':'4.5px'}),
+            
+            html.Div(id='tabs-content'),
+            ]),
+
+            # # Div for Weight Input and Nutritional Values
+            # html.Div([
+
+
+
+
+
+            html.Div([
+                dbc.Button("Add", id="add-to-csv-button", color="primary", className="mb-3")
+            ], style={'text-align': 'center', 'padding-top': '24px'}),
+
+            html.Div(id='add-status'),
+
+            ######### addd button 
+        ], style={'display': 'flex', 'flex-direction': 'column', 'width': '70%', 'lineHeight': '34px'}),
+        
+
+    ], style={'display': 'flex', 'justify-content': 'center', 'width': '100%', 'lineHeight': '34px'}),
+
+
+
+    
+    ])
+    return layout
+
+
+
+def register_callbacks_nutrition(app):
+
+    app.clientside_callback(
+        ClientsideFunction(namespace='clientside', function_name='trigger_animation'),
+        Output('tabs-content', 'data-dummy'),  # Use a dummy output to trigger the callback
+        [Input('tabs', 'value')]
+    )
+    @app.callback(Output('tabs-content', 'children'),
+                [Input('tabs', 'value')])
+    def render_content(tab):
+        if tab == 'tab-1':
+            return html.Div([
+
                 # Weight Input with Update Button
                 dbc.InputGroup([
+
                     # Meal Dropdown with Label
                     html.Div([
                         dbc.Label("Meal:", style={'marginRight': '10px', 'alignSelf': 'center'}),
@@ -228,86 +305,29 @@ def nutrition_page():
                     dbc.Button("Update", id="update-nutrition-values", n_clicks=0, color="primary", style={'marginLeft': '15px', 'alignSelf': 'center'})
                 ], style={'marginBottom': '10px', 'display': 'flex', 'alignItems': 'center'}),
 
+
+
                 # Placeholder for Nutritional Values
                 html.Div(id='dynamic-nutritional-values')
-            ], style={'height': '1150px', 'border': '1px solid #ddd', 'borderRadius': '5px', 'padding': '10px'}),
+        ], className='fade-in-content', style={'height': '1150px', 'border': '1px solid #ddd', 'borderRadius': '5px', 'padding': '10px',  'position': 'relative'}),
 
 
 
-
-            html.Div([
-                dbc.Button("Add", id="add-to-csv-button", color="primary", className="mb-3")
-            ], style={'text-align': 'center', 'padding-top': '24px'}),
-
-            html.Div(id='add-status'),
-
-            ######### addd button 
-        ], style={'display': 'flex', 'flex-direction': 'column', 'width': '70%', 'lineHeight': '34px'}),
-        
-
-    ], style={'display': 'flex', 'justify-content': 'center', 'width': '100%', 'lineHeight': '34px'}),
-
-    ################# daily feed  ################
-    # html.H2('Daily feed'),
-    # html.Div([
-    #     # Left arrow button
-    #     html.Button('←', id='prev-day-button', 
-    #                 style={'display': 'inline-block', 'background-color': 'white', 'border': '1px solid darkgrey'}),
-        
-    #     # Date picker
-    #     dcc.DatePickerSingle(
-    #         id='selected-date',
-    #         date=datetime.today().date(),
-    #         style={'display': 'inline-block'}
-    #     ),
-
-    #     # Right arrow button
-    #     html.Button('→', id='next-day-button', 
-    #                 style={'display': 'inline-block', 'background-color': 'white', 'border': '1px solid darkgrey'}),
-    # ], style={'textAlign': 'center', 'padding': '10px'}),
-
-    # # show the previous entries (today)
-
-    # html.Div([dbc.Button('Show Entries', id='refresh-entries-button', color="primary", className="mb-3")
-    #         ], style={'text-align': 'center', 'padding-top': '24px'}),
-
-    # html.Div(id='recent-entries-container'),
-    # footer,
-
-
-    
-    ])
-    return layout
-
-
-
-def register_callbacks_nutrition(app):
-
-    @app.callback(
-        [
-            Output("settings-panel", "style"),
-            Output("toggle-settings", "style")
-        ],
-        [Input("toggle-settings", "n_clicks")],
-        [
-            State("settings-panel", "style"),
-            State("toggle-settings", "style")
-        ],
-    )
-    def toggle_settings_panel(n_clicks, panel_style, button_style):
-        if n_clicks:
-            if panel_style["bottom"] == "0%":
-                # Panel is open; move it to "closed" state, leaving a small part visible
-                panel_style["bottom"] = "-45%"  # Adjust as needed
-                button_style["bottom"] = "2.5%"  # Adjust to align with the visible part of the panel
-            else:
-                # Panel is "closed"; open it fully, but ensure it slides just below half the button
-                panel_style["bottom"] = "0%"
-                button_style["bottom"] = "47.5%"  # Adjust so the panel goes slightly under the button
-            return panel_style, button_style
-        return panel_style, button_style
-
-
+        elif tab == 'tab-2':
+            return html.Div([
+                # Place your Amino Acids & Minerals content here
+                # Example: html.P("Amino Acids & Minerals content")
+            ], className='fade-in-content')
+        elif tab == 'tab-3':
+            return html.Div([
+                # Place your Sugars content here
+                # Example: html.P("Sugars content")
+            ], className='fade-in-content')
+        elif tab == 'tab-4':
+            return html.Div([
+                # Place your Sugars content here
+                # Example: html.P("Sugars content")
+            ], className='fade-in-content')
 
 
 
@@ -432,6 +452,26 @@ def register_callbacks_nutrition(app):
         |     \(  <_> |  <_> ) /_/ | 
         \___  / \____/ \____/\____ | 
             \/                    \/ 
+
+        Stores JSON data extracted from an image or input text into a specified storage mechanism, potentially utilizing AI for processing, depending on the toggle state.
+
+        Parameters:
+        - n_clicks (int): The number of times the submit button has been clicked. Used to trigger the function.
+        - n_clicks_row (int): The number of times a specific row button has been clicked, if applicable.
+        - stored_image_data (str): Base64 encoded string of the image data from which to extract information.
+        - input_text (str): Text input provided by the user, which may contain additional information or instructions.
+        - ai_toggle_on (bool): A boolean flag indicating whether AI processing mode is enabled or not.
+
+        Returns:
+        - None. The function is expected to store the processed data in a predefined location or format, not return it.
+
+        Example:
+        Assuming the function is properly connected to a UI with the necessary components:
+        - User uploads an image and/or enters text.
+        - User toggles AI processing mode if desired.
+        - User clicks the submit button, triggering this function.
+
+        Note: This docstring assumes the function's purpose based on its parameters. The actual implementation details are not provided.
         """
         ctx = dash.callback_context
         triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
@@ -593,45 +633,46 @@ def register_callbacks_nutrition(app):
         # Determine which input triggered the callback
         trigger = ctx.triggered[0]['prop_id']
 
-        json_entry = adjust_nutritional_weight_values(json_entry, trigger, weight_input)
+        # FUNCTIO NTHAT DOES ALL THE WEIGHT STUFF, BUT NOT ENTIRELY FUNCTIONAL
+        # json_entry = adjust_nutritional_weight_values(json_entry, trigger, weight_input)
 
-        # # Extract the weight from json_entry, use default if not present or zero
-        # json_weight = json_entry.get('weight', 100)
-        # if json_weight == 0:
-        #     json_weight = 100
-        # default_weight = json_weight
+        # Extract the weight from json_entry, use default if not present or zero
+        json_weight = json_entry.get('weight', 100)
+        if json_weight == 0:
+            json_weight = 100
+        default_weight = json_weight
 
-        # # Update weight_input to json_entry weight when submit-nutrition-data button is clicked
-        # if 'submit-nutrition-data.n_clicks' in trigger:
-        #     weight_input = json_weight
-        #     default_weight = json_weight
-        # elif weight_input is None or weight_input == dash.no_update:
-        #     # Maintain the existing weight_input value for other triggers
-        #     weight_input = json_weight
-        #     default_weight = json_weight
-
-
-        # # Adjust the values based on the input weight
-        # factor = weight_input / default_weight
+        # Update weight_input to json_entry weight when submit-nutrition-data button is clicked
+        if 'submit-nutrition-data.n_clicks' in trigger:
+            weight_input = json_weight
+            default_weight = json_weight
+        elif weight_input is None or weight_input == dash.no_update:
+            # Maintain the existing weight_input value for other triggers
+            weight_input = json_weight
+            default_weight = json_weight
 
 
-        # # adapt the weight of these items.
-        # essential_amino_acids = [
-        #     "histidine",
-        #     "isoleucine",
-        #     "leucine",
-        #     "lysine",
-        #     "methionine",
-        #     "phenylalanine",
-        #     "threonine",
-        #     "tryptophan",
-        #     "valine"
-        # ]
-        # columns_to_adjust = ['calories','carbohydrates','protein','fat',
-        #                      'fiber','sugar','unsaturated fat','saturated fat','weight'] + essential_amino_acids
-        # for entry in columns_to_adjust:
-        #     if entry in json_entry:
-        #         json_entry[entry] = json_entry[entry]*factor
+        # Adjust the values based on the input weight
+        factor = weight_input / default_weight
+
+
+        # adapt the weight of these items.
+        essential_amino_acids = [
+            "histidine",
+            "isoleucine",
+            "leucine",
+            "lysine",
+            "methionine",
+            "phenylalanine",
+            "threonine",
+            "tryptophan",
+            "valine"
+        ]
+        columns_to_adjust = ['calories','carbohydrates','protein','fat',
+                             'fiber','sugar','unsaturated fat','saturated fat','weight'] + essential_amino_acids
+        for entry in columns_to_adjust:
+            if entry in json_entry:
+                json_entry[entry] = json_entry[entry]*factor
 
 
         # Check if the submit button was clicked
@@ -717,7 +758,6 @@ def register_callbacks_nutrition(app):
         return html.Div("Complete")
         
 
-
     # Function to process the image
     @app.callback(
         [Output('display-image', 'children'),
@@ -737,8 +777,8 @@ def register_callbacks_nutrition(app):
             src_str = f"data:image/{image_format};base64,{base64_image}"
 
             image_style = {
-                'width': '256px',
-                'height': '256px',
+                'width': '128px',
+                'height': '128px',
                 'border': '5px solid transparent',  # Gradient border
                 'background-image': 'linear-gradient(white, white), linear-gradient(to right, lightblue, darkblue)',
                 'background-origin': 'border-box',
@@ -747,38 +787,20 @@ def register_callbacks_nutrition(app):
             return html.Img(src=src_str, style={'max-width': '100%', 'height': 'auto'}), image_style, base64_image
 
         # No image uploaded
-        return "No image uploaded", {'display': 'none'}, None
+        return " ", {
+        'display': 'flex',  # Ensure the div remains visible
+        'justify-content': 'center',  # Center the content
+        'align-items': 'center',  # Vertically center
+        'width': '128px',  # Set the width for the image placeholder
+        'height': '128px',  # Set the height for the image placeholder
+        'border': '2px dashed #ccc',  # Optional: dashed border
+        'background-repeat': 'no-repeat',
+        'background-position': 'center',
+        'background-size': '100px 100px',  # Adjust size of the background image (placeholder icon)
+        'background-image': 'url("/assets/placeholder.png")'  # Placeholder icon
+    }, None
 
 
-
-    @app.callback(
-        [Output('carousel-content', 'children'),
-        Output('carousel-index-store', 'data')],
-        [Input('carousel-left-btn', 'n_clicks'),
-        Input('carousel-right-btn', 'n_clicks')],
-        [State('carousel-index-store', 'data')]
-    )
-    def update_carousel_content(left_clicks, right_clicks, index_data):
-        ctx = dash.callback_context
-
-        # Retrieve the current index from dcc.Store
-        current_index = index_data['index']
-
-        if not ctx.triggered:
-            # Default content on initial load
-            return carousel_items[current_index](), index_data
-        else:
-            button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-
-            if button_id == 'carousel-right-btn':
-                # Increment index and loop back if at the end
-                current_index = (current_index + 1) % len(carousel_items)
-            elif button_id == 'carousel-left-btn':
-                # Decrement index and loop back if at the start
-                current_index = (current_index - 1) % len(carousel_items)
-
-            # Call the function to get the layout and update the index
-            return carousel_items[current_index](), {'index': current_index}
 
 
     # @app.callback(

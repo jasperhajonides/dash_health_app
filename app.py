@@ -1,29 +1,29 @@
-import sys
+import os
 from dash import Dash, html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
-from dash import dcc
+from dash import dcc, no_update
 
 
 from pages.nutrition import nutrition_page, register_callbacks_nutrition
 from pages.all_activities import all_activities_page, register_callbacks_all_activities
-from pages.daily_logbooks import register_callbacks_logbook
+from pages.nutrition_page_parts.daily_logbooks import register_callbacks_logbook
 # Import sidebar and pages
 from pages import (
     sidebar, 
-    home, 
     single_activity,
     profile,
     ) 
 
+from functions.user_data import UserData
+
+user_data_instance = UserData(user_id = 'jasperhajonides')
+
 app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-
-
-# Register callbacks for each page
-# all_activities.register_callbacks(app)
-# information.register_callbacks(app)
-
+# Serve the assets folder? for adding teleporthq code to the app
+app.css.config.serve_locally = True
+app.scripts.config.serve_locally = True
 
 app.layout = html.Div([
     dcc.Store(id='selected_sport'),  # Store component
@@ -40,25 +40,23 @@ app.layout = html.Div([
     dcc.Store(id='item-submission-state', data={'submitted': False}), # whether we pressed item submission or not in the nutrition app
 
 
-
     dbc.Row(
         [
-            dbc.Col(sidebar.create_sidebar(), width=2, style={"position": "fixed", "left": 0, "width": "20%", "minHeight": "100vh"}),
-            dbc.Col(id="page-content", style={"marginLeft": "25%","marginRight": "10%" , "padding": "20px"}), #"width": "60%"
+            dbc.Col(sidebar.create_top_navbar(), width=12),  # Replace sidebar with top navbar
+            dbc.Col(id="page-content", style={"marginLeft": "0%", "marginRight": "0%", "padding": "1px"}),
         ]
     ),
     dcc.Location(id="url", refresh=False)
 ])
 
 # Register callbacks from sidebar
-sidebar.register_callbacks(app)
-home.register_callbacks(app)
+# sidebar.register_callbacks(app)
 register_callbacks_all_activities(app)
 single_activity.register_callbacks(app)
 register_callbacks_nutrition(app)
 register_callbacks_logbook(app)
+profile.callback_functions_profile(app, user_data_instance)
 
-# profile.register_callbacks(app)
 
 
 # Callback for updating page content
@@ -71,27 +69,19 @@ def display_page(pathname):
     if pathname == '/all-activities':
         return all_activities_page()
     elif pathname == '/profile':
-        return profile.layout
+        return profile.profile_layout(user_data_instance)
     elif pathname == '/information':
-        return information.layout
+        return no_update()
     elif pathname == '/single_activity':
         return single_activity.layout  # No need to pass row_data here
     elif pathname == '/nutrition':
         return nutrition_page()
     else:
-        return home.layout
+        return html.Div([
+                    html.Iframe(src="/assets/index.html", style={"width": "100%", "height": "100vh", "border": "none"})
+                ])
     
 
-# @app.callback(
-#     Output('all_fit_files', 'data')
-#     Input()
-# )
-# def load_in_fit_files():
-
-#     lff = LoadFitFiles(directory= '/Users/jasperhajonides/Desktop/garmin_data/',list_fit_files=None ) #, list_fit_files=list_fits)#root_path + 'data/garmin_test_data/')
-#     df_all_fits = lff.get_fit_data()
-
-#     return df_all_fits
-
 if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+    port = int(os.environ.get('PORT', 8050))
+    app.run_server(debug=True, host='0.0.0.0', port=port)
