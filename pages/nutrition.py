@@ -671,7 +671,9 @@ def register_callbacks_nutrition(app):
         columns_to_adjust = ['calories','carbohydrates','protein','fat',
                              'fiber','sugar','unsaturated fat','saturated fat','weight'] + essential_amino_acids
         for entry in columns_to_adjust:
+            print('ALL JSON ENTRIES', json_entry)
             if entry in json_entry:
+                print("specific entry: ",  json_entry[entry])
                 json_entry[entry] = json_entry[entry]*factor
 
 

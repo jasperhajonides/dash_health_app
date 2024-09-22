@@ -7,6 +7,12 @@ pages/__pycache__/
 # C extensions
 *.so
 
+# images
+*.png
+
+# csvs
+*.csv
+
 # Distribution / packaging
 .Python
 build/
@@ -171,4 +177,4 @@ cython_debug/
 .xlsx
 
 # notebooks
-.ipynb
+.ipynb*.pyc
