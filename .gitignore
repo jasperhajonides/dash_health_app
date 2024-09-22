@@ -177,4 +177,6 @@ cython_debug/
 .xlsx
 
 # notebooks
-.ipynb*.pyc
+.ipynb
+# pyc
+*.pyc
