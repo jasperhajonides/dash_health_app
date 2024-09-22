@@ -197,7 +197,7 @@ class NutritionExtraction:
 
         return self.nutrition_dict, self.missing_keys        
 
-    def openai_api_image(self, prompt: str, image: str, model: str = "gpt-4-vision-preview", n: int = 1, temperature: float = 1) -> dict:
+    def openai_api_image(self, prompt: str, image: str, model: str = "gpt-4o-mini", n: int = 1, temperature: float = 1) -> dict:
         """
         Placeholder method for calling the OpenAI API with both text and image input.
 
