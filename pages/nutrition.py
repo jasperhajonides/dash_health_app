@@ -579,36 +579,6 @@ def register_callbacks_nutrition(app):
             print("\n FINAL json_entry", json_entry)
             return json_entry
 
-    # def adjust_nutritional_weight_values(json_entry, trigger, weight_input):
-    #     # Define keys to exclude from adjustments
-    #     EXCLUDED_KEYS = ['glycemic index', 'name', 'description', 'meal_type', 'units']
-
-
-    #      # Extract the weight from json_entry, use default if not present or zero
-    #     json_weight = json_entry.get('weight', 100)
-    #     if json_weight == 0:
-    #         json_weight = 100
-    #     default_weight = json_weight
-
-    #     # Determine weight_input based on the trigger
-    #     if 'submit-nutrition-data.n_clicks' in trigger:
-    #         weight_input = json_weight
-    #         default_weight = json_weight
-    #     elif weight_input is None or weight_input == dash.no_update:
-    #         # Maintain the existing weight_input value for other triggers
-    #         weight_input = json_weight
-    #         default_weight = json_weight
-
-    #     # Calculate adjustment factor based on weight input
-    #     factor = weight_input / default_weight
-
-    #     # Dynamically adjust values based on factor, excluding specified keys
-    #     for key, value in json_entry.items():
-    #         if key not in EXCLUDED_KEYS and isinstance(value, (int, float)):
-    #             json_entry[key] = value * factor
-
-    #     return json_entry
-
 
     @app.callback(
         [Output('dynamic-nutritional-values', 'children'),

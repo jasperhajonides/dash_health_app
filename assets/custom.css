@@ -1,0 +1,49 @@
+/* Center the date in the top row */
+.date-header {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Style the menu button */
+.menu-button {
+    text-align: right;
+}
+
+/* Adjust the margins of the cards */
+.card {
+    margin-bottom: 20px;
+}
+
+/* Adjust the image preview */
+.image-preview {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Style the image preview title */
+#output-image-preview h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+/* Adjust the weight input group */
+.input-group {
+    width: 100%;
+}
+
+/* Make the upload button full width */
+button#upload-button {
+    width: 100%;
+}
+
+/* General styles */
+body {
+    margin: 0;
+    padding: 0;
+}
+
+/* Adjust the nutritional info */
+#nutritional-info {
+    /* Add any additional styling as needed */
+}
