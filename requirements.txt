@@ -16,3 +16,6 @@ python-dotenv
 fitparse
 ipywidgets
 tqdm
+supabase
+google-cloud-storage
+gunicorn

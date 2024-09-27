@@ -10,8 +10,10 @@ pages/__pycache__/
 # images
 *.png
 
-# csvs
+# csvs & jsons
+*.json
 *.csv
+*.pyc
 
 # Distribution / packaging
 .Python

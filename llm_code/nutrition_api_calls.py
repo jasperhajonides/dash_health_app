@@ -119,6 +119,11 @@ class NutritionExtraction:
             'name item': 'name',
             'total calories': 'calories',
             'total fat': 'fat',
+            'glycemic index': 'glycemic_index',
+            'saturated fat': 'saturated_fat',
+            'unsaturated fat':'unsaturated_fat',
+            'soluble fiber':'soluble_fiber',
+            'insoluble fiber':'insoluble_fiber',
         }
         
         for incorrect_key, correct_key in corrections.items():
@@ -140,6 +145,8 @@ class NutritionExtraction:
     def concatenate_dataframes(self, new_df):
         # Concatenate self.df with new_df, adding new rows and columns as needed
         self.df = pd.concat([self.df, new_df], ignore_index=True, sort=False)
+
+
 
     def openai_api(self, prompt: str, model: str = "gpt-3.5-turbo-1106", n: int = 1, temperature: float = 1) -> dict:
         """
@@ -177,7 +184,6 @@ class NutritionExtraction:
         # get response summary. 
         self.summarise_llm_response()
         
-        print(' self.full_nutr_dict!!!!!!!!!',  self.full_nutr_dict)
         # now extract the nutritional data from the api call
         new_df, new_nutrition_dict = multiple_api_outputs_to_df(self.response, self.full_nutr_dict)
         
