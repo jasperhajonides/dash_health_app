@@ -3,15 +3,18 @@ import os
 from google.cloud import storage
 from google.oauth2 import service_account
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Path to your service account key file
 # CREDENTIALS_FILE = '/Users/jasperhajonides/Documents/Projects/website/dash_health_app/dash-health-2024-b00c57d8f7b9.json'
 
 # Use the environment variable for the credentials file
 CREDENTIALS_FILE = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-# If the environment variable is not set, fall back to a local path
+# If the environment variable is not set, print an error.
 if not CREDENTIALS_FILE:
-    CREDENTIALS_FILE = os.path.join(os.path.dirname(__file__), '../dash-health-2024-b00c57d8f7b9.json')
+    ValueError("Could not find a Google Credential File (.json), please correct its path.")
 
 
 # Create credentials object from service account key file

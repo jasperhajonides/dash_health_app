@@ -26,7 +26,7 @@ COPY ./requirements.txt /code/
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 # Set the path for the Google Cloud credentials inside the container
-ENV GOOGLE_APPLICATION_CREDENTIALS="/code/dash-health-2024-b00c57d8f7b9.json"
+ENV GOOGLE_APPLICATION_CREDENTIALS="/code/dash-health-2024-4b0190c40044.json"
 
 # Set environment variables # add ENV OPENAI_API_KEY;  ENV SUPABASE_URL; ENV SUPABASE_KEY
 
