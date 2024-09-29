@@ -37,20 +37,20 @@ app.layout = dbc.Container([
                     html.H5(current_date, className='date-header'),
                     width='auto'
                 ),
-                dbc.Col(
-                    dbc.DropdownMenu(
-                        children=[
-                            dbc.DropdownMenuItem("Menu Item 1"),
-                            dbc.DropdownMenuItem("Menu Item 2"),
-                        ],
-                        nav=True,
-                        in_navbar=True,
-                        label="Menu",
-                        className='menu-dropdown'
-                    ),
-                    width='auto',
-                    style={'margin-left': 'auto'}
-                ),
+                # dbc.Col(
+                #     dbc.DropdownMenu(
+                #         children=[
+                #             dbc.DropdownMenuItem("Menu Item 1"),
+                #             dbc.DropdownMenuItem("Menu Item 2"),
+                #         ],
+                #         nav=True,
+                #         in_navbar=True,
+                #         label="Menu",
+                #         className='menu-dropdown'
+                #     ),
+                #     width='auto',
+                #     style={'margin-left': 'auto'}
+                # ),
             ], align='center', className='flex-nowrap g-0', style={'width': '100%'})
         ]),
         color='lightseagreen',
@@ -68,19 +68,23 @@ app.layout = dbc.Container([
         dbc.Row([
             dbc.Col(
                 html.Div(id='output-image-preview', className='image-preview-container'),
-                width=4
+                width={'size': 4, 'order': 1},  # Image first on larger screens
+                xs=12,  # Full width on extra small screens
+                md=4    # 4-column width on medium screens and up
             ),
             dbc.Col(
                 html.Div([
                     dcc.Upload(
                         id='upload-image',
-                        children=dbc.Button('Upload Image', color='primary', className='mt-2', style={'border-radius': '10px'}),
+                        children=dbc.Button('Upload Image', color='primary', className='mt-2', style={'border-radius': '10px', 'width': '150px'}),
                         multiple=False
                     ),
-                    dbc.Button('Calculate', id='calculate-button', color='success', className='mt-2', style={'border-radius': '10px'}),
+                    dbc.Button('Calculate', id='calculate-button', color='success', className='mt-2', style={'border-radius': '10px', 'width': '150px'}),
                     html.Div(id='output-calculate-status', className='mt-2')
                 ], className='buttons-container'),
-                width=8
+                width={'size': 8, 'order': 2},  # Buttons second on larger screens
+                xs=12,  # Full width on extra small screens
+                md=8    # 8-column width on medium screens and up
             )
         ], className='entries-row'),
 
