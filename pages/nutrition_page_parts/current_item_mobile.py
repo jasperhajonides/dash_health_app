@@ -381,7 +381,14 @@ def create_nutrient_bubbles(json_entry):
     for info in nutrients_info:
         for nutrient in info['nutrients']:
             key = nutrient.replace(' ', '_').replace('(', '').replace(')', '').replace('-', '_').lower()
+
+            # Safely convert the value to a float, or use 0 if conversion fails
             value = json_entry.get(key, 0)
+            try:
+                value = float(value)  # Attempt to convert to float
+            except ValueError:
+                value = 0  # Default to 0 if the conversion fails
+
             if value > 0:
                 nutrient_data.append({
                     'id': nutrient.capitalize(),

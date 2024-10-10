@@ -1,10 +1,13 @@
 import dash
-from dash import html, dcc, Input, Output, State, callback_context, MATCH
+from dash import html, dcc, Input, Output, State, callback_context, MATCH, ALL
+
 import os
 from datetime import datetime
 import dash_bootstrap_components as dbc
 import base64
 from dotenv import load_dotenv
+import json
+
 
 # Import utility modules
 from utils_gc.gcp_utils import upload_image_to_gcs, get_image_url_from_gcs, list_files_in_gcs, generate_id
@@ -13,6 +16,7 @@ from utils_gc.nutrition_utils import get_nutritional_info, adjust_nutritional_we
 from utils_gc.supabase_utils import get_supabase_client, insert_nutrition_data
 from functions.nutrition_plots import create_circular_progress
 from pages.nutrition_page_parts.current_item_mobile import collate_current_item
+from pages.nutrition_page_parts.log_entries_mobile import create_todays_entries_layout
 
 # Set your Google Cloud Storage bucket name
 GCS_BUCKET = 'dash_health_store'
@@ -142,6 +146,9 @@ app.layout = dbc.Container([
         ])
     ], className='mb-3'),
 
+    # display log entries for today
+    html.Div(id='todays-entries-container'),
+
     # Display Nutritional Data Card
     dbc.Card([
         dbc.CardHeader(html.H5("Display Daily Nutritional Summary")),
@@ -151,20 +158,25 @@ app.layout = dbc.Container([
         ])
     ], className='mb-3'),
 
+    
+
     # Hidden stores for nutritional data
     dcc.Store(id='nutritional-json-data'),
     dcc.Store(id='adjusted-nutritional-json-data'),
     dcc.Store(id='todays_nutritional_data'),
+    dcc.Store(id='data-refresh-trigger'),  # New store to trigger data refresh
     dcc.Interval(id='interval-startup', interval=1*1000, n_intervals=0, max_intervals=1)
 ], fluid=True)
 
-# Callback to fetch today's nutritional data on page load or when new data is uploaded
+# Callback to fetch today's nutritional data on page load or when new data is uploaded or deleted
 @app.callback(
     Output('todays_nutritional_data', 'data'),
     Input('interval-startup', 'n_intervals'),
-    Input('output-upload-status', 'children')
+    Input('output-upload-status', 'children'),
+    Input('data-refresh-trigger', 'data'),
+    prevent_initial_call=True
 )
-def fetch_todays_data(n_intervals, upload_status):
+def fetch_todays_data(n_intervals, upload_status, refresh_trigger):
     try:
         supabase_client = get_supabase_client()
         today_str = datetime.now().strftime('%Y-%m-%d')
@@ -278,7 +290,7 @@ def calculate_nutritional_info(n_clicks, image_contents, description):
 
         if base64_image:
             # Get nutritional information
-            json_nutrition_std = get_nutritional_info(base64_image, description, detail='high')
+            json_nutrition_std = get_nutritional_info(base64_image, description, detail='all')
 
             if json_nutrition_std:
                 # Show the weight adjustment div
@@ -461,6 +473,54 @@ def upload_image_to_cloud(n_clicks, filename, image_contents, adjusted_json_nutr
             return upload_status
     return ""
 
+# Callback to update today's entries
+@app.callback(
+    Output('todays-entries-container', 'children'),
+    Input('todays_nutritional_data', 'data')
+)
+def update_todays_entries(data):
+    return create_todays_entries_layout(data)
+
+# Callback to handle deletion of entries
+@app.callback(
+    Output('data-refresh-trigger', 'data'),
+    Input({'type': 'delete-button', 'index': ALL}, 'n_clicks_timestamp'),
+    prevent_initial_call=True
+)
+def delete_entry(n_clicks_timestamp_list):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        raise dash.exceptions.PreventUpdate
+
+    # Get the IDs and timestamps of all delete buttons
+    inputs = ctx.inputs
+    timestamp_by_id = {}
+    for k, v in inputs.items():
+        id_str = k.split('.')[0]
+        id_dict = json.loads(id_str.replace("'", '"'))
+        entry_id = id_dict['index']
+        timestamp = v
+        if timestamp is not None:
+            timestamp_by_id[entry_id] = timestamp
+
+    if not timestamp_by_id:
+        raise dash.exceptions.PreventUpdate
+
+    # Find the entry_id with the latest timestamp
+    entry_id = max(timestamp_by_id, key=timestamp_by_id.get)
+
+    # Perform deletion from Supabase
+    delete_entry_from_supabase(entry_id)
+
+    # Return a value to trigger data refresh
+    return str(datetime.now())
+
+def delete_entry_from_supabase(entry_id):
+    try:
+        supabase_client = get_supabase_client()
+        supabase_client.table('sandbox_nutrition').delete().eq('id', entry_id).execute()
+    except Exception as e:
+        print(f"Error deleting entry from Supabase: {str(e)}")
 
 
 @app.callback(

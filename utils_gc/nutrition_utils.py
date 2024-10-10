@@ -35,6 +35,10 @@ def get_nutritional_info(base64_image, description='', detail='core'):
             image=stored_image_data,
             n=1
         )
+
+        # post process json
+        json_nutrition_std = post_process_nutritional_info(json_nutrition_std, prompts['image_text_prompt'])
+
         return json_nutrition_std
     except Exception as e:
         print(f"Error in nutritional analysis: {str(e)}")
@@ -83,7 +87,7 @@ def post_process_nutritional_info(json_entry, prompt):
     """
 
     json_entry['weight_original'] = json_entry['weight']
-    json_enty['prompt'] = json_entry['prompt']
+    json_entry['prompt'] = prompt
     if 'saturated fat' in json_entry and 'unsaturated fat' in json_entry:
         json_entry['triglycerides'] = json_entry['saturated fat'] + json_entry['unsaturated fat']
 
