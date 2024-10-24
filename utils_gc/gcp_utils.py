@@ -70,9 +70,32 @@ def list_files_in_gcs(bucket_name):
         print(f"Error listing files in GCS: {str(e)}")
         return []
     
+import datetime
+import pytz
 
-def generate_id():
-    now = datetime.now()
-    id_str = now.strftime('%y%m%d%H%M%S')
-    return id_str
-
+def generate_id_and_custom_timestamp(selected_date=None):
+    # Get the current time in UTC
+    now_utc = datetime.datetime.now(pytz.utc)
+    
+    if selected_date:
+        try:
+            # Parse the selected date
+            date_part = datetime.datetime.strptime(selected_date, '%Y-%m-%d').date()
+            # Use the current time
+            time_part = now_utc.time()
+            # Combine date and time
+            custom_datetime = datetime.datetime.combine(date_part, time_part)
+            # Set timezone to UTC
+            custom_datetime = custom_datetime.replace(tzinfo=pytz.utc)
+        except ValueError:
+            raise ValueError("Please provide the date in 'YYYY-MM-DD' format.")
+    else:
+        custom_datetime = now_utc
+    
+    # Generate id_str in 'yyyymmddHHMMSS' format
+    id_str = custom_datetime.strftime('%Y%m%d%H%M%S')
+    
+    # Format timestamp with timezone
+    custom_timestamp = custom_datetime.isoformat()
+    
+    return id_str, custom_timestamp

@@ -14,13 +14,15 @@ def get_supabase_client():
     supabase: Client = create_client(url, key)
     return supabase
 
+
+
 def insert_nutrition_data(supabase_client, table_name, data):
 
 
     # (Assuming you know your table's schema and columns, you can list them here)
     # (Assuming you know your table's schema and columns, you can list them here)
     valid_columns = [
-        'id', 'name', 'llm_output', 'prompt', 'description', 'glycemic_index', 'weight', 'weight_original','calories', 'fat', 'carbohydrates', 'protein', 
+        'id', 'name', 'username', 'meal_type', 'date', 'created_at', 'llm_output', 'prompt', 'description', 'glycemic_index', 'weight', 'weight_original','calories', 'fat', 'carbohydrates', 'protein', 
         'fiber', 'triglycerides','saturated_fat', 'unsaturated_fat', 'sugar', 'fructose', 'galactose', 'lactose','glucose',
         'soluble_fiber', 'insoluble_fiber', 'sterols', 'phospholipids','oligosaccharides', 'polysaccharides',
         # Essential Amino Acids
@@ -39,7 +41,8 @@ def insert_nutrition_data(supabase_client, table_name, data):
 
     # Step 2: Filter the JSON data to include only valid columns
     filtered_data = {key: value for key, value in data.items() if key in valid_columns}
-
+    print(filtered_data)
+    print('TYPE CREATED AT', type(filtered_data['created_at']))
     response = supabase_client.table(table_name).insert(filtered_data).execute()
     # Correct handling of the response
     if response.data:  # Directly access 'data' attribute from the response
