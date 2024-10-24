@@ -18,10 +18,11 @@ class NutritionExtraction:
     full_nutr_dict = {
             'indices': ['glycemic index', 'calories', 'weight'],
             'macros': ['protein', 'fat', 'carbohydrates'],
-            'macros_detailed': ['fiber', 'saturated fat', 'unsaturated fat', 'sugar'],
+            'macros_detailed': ['fiber', 'saturated fat', 'sugar'],
             'sugar_types': ['glucose', 'fructose', 'galactose', 'lactose'],
+            'complex_carbs': ['oligosaccharides', 'polysaccharides'],
             'fiber_types': ['soluble fiber', 'insoluble fiber'],
-            'fat_types': [],
+            'fat_types': ['sterols', 'phospholipids','unsaturated fat'],
             'essential amino acids': ['histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'threonine', 'tryptophan', 'valine'],
             'conditionally essential amino acids': ['arginine', 'cysteine', 'glutamine', 'glycine', 'proline', 'tyrosine'],
             'nonessential amino acids': ['alanine', 'aspartic acid', 'asparagine', 'glutamic acid', 'serine', 'selenocysteine', 'pyrrolysine'],
@@ -64,6 +65,8 @@ class NutritionExtraction:
             return (self.full_nutr_dict['indices'] + 
                     self.full_nutr_dict['macros'] + 
                     self.full_nutr_dict['macros_detailed'] +  
+                    self.full_nutr_dict['complex_carbs'] +  
+                    self.full_nutr_dict['fat_types'] +  
                     self.full_nutr_dict['sugar_types'] + 
                     self.full_nutr_dict['essential amino acids'] +
                     self.full_nutr_dict['fiber_types'])
@@ -71,6 +74,7 @@ class NutritionExtraction:
             return (self.full_nutr_dict['indices'] + 
                     self.full_nutr_dict['macros'] + 
                     self.full_nutr_dict['macros_detailed'] +  
+                    self.full_nutr_dict['complex_carbs'] +  
                     self.full_nutr_dict['sugar_types'] + 
                     self.full_nutr_dict['fat_types'] + 
                     self.full_nutr_dict['essential amino acids'] +

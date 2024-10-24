@@ -174,3 +174,22 @@ or list all the tags of an image:
 Now we can delete the desired tag of an image:
 
 `gcloud container images delete gcr.io/dash-health-2024/dash-app:{TAG} --quiet`
+
+
+
+Notes:
+#### docker testing
+`docker build -t dash_health_app . `
+
+`docker run -p 8080:8080 dash_health_app`  
+
+#### deploying
+`docker build --platform linux/amd64 -t gcr.io/dash-health-2024/dash_health_app .`
+`docker push gcr.io/dash-health-2024/dash_health_app`
+
+
+gcloud run deploy dash-health-app \
+    --image gcr.io/dash-health-2024/dash_health_app \
+    --platform managed \
+    --region europe-west2 \
+    --allow-unauthenticated

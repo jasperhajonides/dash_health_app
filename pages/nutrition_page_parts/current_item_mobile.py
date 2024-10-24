@@ -1,345 +1,514 @@
+# current_item_mobile.py
 
 import dash
-from dash import html, dcc
-import plotly.graph_objs as go
+from dash import html, dcc, Output, Input, State, MATCH
 import dash_bootstrap_components as dbc
-import base64
+import plotly.express as px
+import pandas as pd
+import numpy as np
+import circlify
+import random
 
+def create_header(json_entry):
+    """
+    Create the header section with the item name, description, and glycemic index.
+    """
+    name = json_entry.get('name', 'Unknown Item')
+    description = json_entry.get('description', '')
+    glycemic_index = json_entry.get('glycemic_index', None)
 
-# Function to create the circular progress circles
+    header_children = [
+        html.H4(name, style={'font-weight': 'bold'}),
+        html.P(description, style={'font-weight': 'normal', 'font-style': 'italic'}),
+    ]
 
-# Function to create the circular progress circles
-def create_circular_progress(value, target, unit, description, color, layout_direction='below',
-                              radius=45, fontsize_text=16, fontsize_num=36, stroke_width_backgr=4, 
-                              stroke_width_complete=7, stroke_dashoffset=0):
-    value = round(value)  # Round the value to an integer
-    percentage = min(value / target, 1)  # Ensure percentage doesn't exceed 100%
-    circumference = 2 * 3.14 * radius  # Circumference of the circle
-    stroke_length = percentage * circumference
+    if glycemic_index is not None:
+        header_children.append(
+            html.P(f"Glycemic Index: {glycemic_index}", style={'font-weight': 'normal', 'font-style': 'italic'})
+        )
 
-    # The dash array creates the stroke length
-    stroke_dasharray = f"{stroke_length} {circumference}"
+    header = html.Div(
+        header_children,
+        style={'text-align': 'center', 'margin-bottom': '20px'}
+    )
+    return header
 
-    svg_circle = f'''
-    <svg width="{2*radius+10}" height="{2*radius+10}" viewBox="0 0 {2*radius+10} {2*radius+10}" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="{radius+5}" cy="{radius+5}" r="{radius}" fill="transparent" stroke="#ddd" stroke-width="{stroke_width_backgr}"></circle>
-        <circle cx="{radius+5}" cy="{radius+5}" r="{radius}" fill="transparent" stroke="{color}" stroke-width="{stroke_width_complete}"
-                stroke-dasharray="{stroke_dasharray}" stroke-dashoffset="{stroke_dashoffset}"
-                style="transform: rotate(-90deg); transform-origin: center;"></circle>
-        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" 
-              style="fill: black; font-size: {fontsize_num}px; font-family: Arial;" transform="translate({radius+5}, ${radius+10})">{value}</text>
-    </svg>
-    '''
+def create_info_icon(info_id, info_text):
+    """
+    Create an information icon with a popover for additional information.
+    """
+    icon = html.Span(
+        "ℹ️",
+        id=info_id,
+        style={'cursor': 'pointer', 'margin-left': '5px', 'font-size': '16px'}
+    )
+    popover = dbc.Popover(
+        [
+            dbc.PopoverBody(info_text)
+        ],
+        id=f"popover-{info_id}",
+        target=info_id,
+        trigger="click",
+        placement="top",
+    )
+    return html.Span([icon, popover])
 
-    encoded_svg = f"data:image/svg+xml;base64,{base64.b64encode(svg_circle.encode()).decode()}"
+def create_macro_bar(nutrient, actual_value, recommended_value, nutrient_colors):
+    """
+    Create the macro nutrient progress bar with a toggle button for sub-bars.
+    """
+    percentage = (actual_value / recommended_value) * 100 if recommended_value else 0
+    percentage = min(percentage, 100)  # Cap at 100%
 
-    img_style = {"width": f"{2*radius+10}px", "height": f"{2*radius+10}px"}
+    # Format the nutrient name
+    nutrient_name = nutrient.capitalize()
 
-    text_div_style = {'fontSize': f'{fontsize_text}px', 'textAlign': 'center', 'margin': '0'}
+    # Determine the unit
+    unit = 'g' if nutrient != 'calories' else 'kcal'
 
-    # Adjust styles based on layout direction
-    if layout_direction == 'below':
-        container_style = {"display": "inline-flex", "flexDirection": "column", "alignItems": "center", "padding": "0"}
-        text_div_style.update({'marginTop': '5px'})  # Reduce space between circle and text
-    elif layout_direction == 'right':
-        container_style = {"display": "flex", "alignItems": "center", "padding": "0"}
-        img_style.update({'marginRight': '10px'})  # Reduce space between circle and text
+    # Text to display on the right side
+    display_text = f"{actual_value:.1f} / {recommended_value} {unit}"
 
-    return html.Div([
-        html.Img(src=encoded_svg, style=img_style),
-        html.Div(f"{unit} {description}", style=text_div_style)
-    ], style=container_style)
+    # Create the information icon
+    info_icon = create_info_icon(f"info-{nutrient}", f"More information about {nutrient_name}")
 
+    # Create the progress bar
+    bar_style = {
+        'height': '30px' if nutrient == 'calories' else '20px',
+        'border-radius': '10px',
+    }
 
-# Utility function for rendering the nutrition content below circles
-def render_nutrition_list(nutrition_list, color='black'):
-    return html.Ul([html.Li(f"{name}: {value}g", style={'color': color}) for name, value in nutrition_list])
+    label_style = {
+        'flex': '1',
+        'font-weight': 'bold',
+        'font-size': '18px' if nutrient == 'calories' else '16px',
+        'margin-left': '5%',
+        'display': 'flex',
+        'align-items': 'center',
+    }
 
+    value_style = {
+        'flex': '1',
+        'text-align': 'right',
+        'font-size': '16px' if nutrient == 'calories' else '14px',
+        'margin-right': '5%',
+    }
 
+    # Toggle button ID
+    toggle_button_id = {'type': 'toggle-button', 'index': nutrient}
 
-# def collate_current_item(json_entry, weight_input, meal_type):
-#     body_weight_kg = 70
+    # Create the macro bar with a toggle button
+    macro_bar = html.Div([
+        html.Div([
+            html.Span([nutrient_name, info_icon], style=label_style),
+            html.Span(display_text, style=value_style),
+        ], style={'display': 'flex', 'justify-content': 'space-between', 'margin-bottom': '5px'}),
+        dbc.Progress(
+            value=percentage,
+            max=100,
+            style=bar_style,
+            color=nutrient_colors.get(nutrient, 'primary'),
+            striped=False,
+        ),
+        # Add the toggle button
+        dbc.Button(
+            f"Show {nutrient_name} breakdown",
+            id=toggle_button_id,
+            color="link",
+            style={'margin-left': '5%'},
+        ),
+    ], style={'margin-bottom': '15px'})
 
-#     # Macros and colors for stacked bar chart
-#     macros = ['carbohydrates', 'protein', 'fat']
-#     values = [json_entry.get(macro, 0) for macro in macros]
-#     colors = ['#ff9999', '#66b3ff', '#99ff99']  # Pastel colors
+    return macro_bar
 
-#     # Create traces for stacked bar chart
-#     traces = [
-#         go.Bar(name=macro, x=[values[i]], y=["Nutrients"], orientation='h', marker=dict(color=colors[i]))
-#         for i, macro in enumerate(macros)
-#     ]
+def create_stacked_bar(name, total_value, components, color_list, info_id_prefix):
+    """
+    Create a stacked progress bar for sub-nutrients.
+    """
+    # Scale components if necessary
+    total_components = sum(components.values())
+    if total_components > total_value:
+        scale_factor = total_value / total_components if total_components != 0 else 0
+        for comp in components:
+            components[comp] *= scale_factor
+    elif total_components < total_value:
+        components['Other'] = total_value - total_components
 
-#     stacked_bar_chart = dcc.Graph(
-#         figure={
-#             'data': traces,
-#             'layout': go.Layout(
-#                 barmode='stack',  
-#                 xaxis=dict(showticklabels=False, zeroline=False),
-#                 yaxis=dict(showticklabels=False),
-#                 showlegend=False,
-#                 font=dict(family='Libre Franklin Light'),
-#                 margin=dict(l=30, r=30, t=10, b=10),
-#                 height=30,  # Mobile-friendly height
-#                 autosize=True,
-#                 paper_bgcolor='rgba(0,0,0,0)',
-#                 plot_bgcolor='rgba(0,0,0,0)'
-#             )
-#         },
-#         config={'displayModeBar': False}
-#     )
+    # Create segments for the stacked progress bar
+    bar_segments = []
+    num_components = len(components)
+    # Generate lighter shades of the nutrient color
+    color_list = color_list[:num_components]
 
+    for idx, (comp_name, comp_value) in enumerate(components.items()):
+        comp_percentage = (comp_value / total_value) * 100 if total_value != 0 else 0
+        color = color_list[idx % len(color_list)]
+        bar_segments.append(
+            dbc.Progress(
+                value=comp_percentage,
+                color=color,
+                label=f"{comp_name}: {comp_value:.1f}g",
+                bar=True,
+                style={'color': 'black'}  # Labels in black
+            )
+        )
 
+    # Sub-bar styles
+    sub_bar_style = {
+        'height': '30px',
+        'border-radius': '10px',
+        'margin-left': '10%',
+        'margin-right': '10%',
+    }
 
+    sub_label_style = {
+        'flex': '1',
+        'font-weight': 'bold',
+        'font-size': '14px',
+        'margin-left': '5%',
+        'display': 'flex',
+        'align-items': 'center',
+    }
 
+    sub_value_style = {
+        'flex': '1',
+        'text-align': 'right',
+        'font-size': '12px',
+        'margin-right': '5%',
+    }
 
+    # Text to display on the right side
+    display_text = f"{total_value:.1f} g"
 
+    # Create the information icon
+    info_icon = create_info_icon(f"{info_id_prefix}-{name}", f"More information about {name}")
 
-#     # Labels for each segment
-#     labels = ["Protein", "Carbohydrates", "Total Fat", 
-#         "Sugar", 
-#           "Fiber", 
-#         "Saturated Fat", "Unsaturated Fat", 
-#         "Essential", "Conditionally Essential", "Nonessential",
-#         "Glucose", "Fructose", "Galactose", "Lactose",
-#         "Soluble Fiber", "Insoluble Fiber",
-#         # Essential Amino Acids
-#         "Histidine", "Isoleucine", "Leucine", "Lysine", "Methionine", "Phenylalanine", "Threonine", "Tryptophan", "Valine",
-#         # Conditionally Essential Amino Acids
-#         "Arginine", "Cysteine", "Glutamine", "Glycine", "Proline", "Tyrosine",
-#         # Nonessential Amino Acids
-#         "Alanine", "Aspartic Acid", "Asparagine", "Glutamic Acid", "Serine", "Selenocysteine", "Pyrrolysine"
-#     ]
+    # Create the sub-bar
+    sub_bar = html.Div([
+        html.Div([
+            html.Span([name, info_icon], style=sub_label_style),
+            html.Span(display_text, style=sub_value_style),
+        ], style={'display': 'flex', 'justify-content': 'space-between', 'margin-bottom': '5px'}),
+        dbc.Progress(
+            bar_segments,
+            style=sub_bar_style,
+        ),
+    ], style={'margin-bottom': '10px'})
+    return sub_bar
 
-#     # Parents for each segment
-#     parents = [ None, None, None,
-#         "Carbohydrates", 
-#         "Carbohydrates", 
-#         "Total Fat", "Total Fat",
-#         "Protein", "Protein", "Protein",
-#         "Sugar", "Sugar", "Sugar", "Sugar",
-#         "Fiber", "Fiber",
-#         # Essential Amino Acids
-#         "Essential", "Essential", "Essential", "Essential", "Essential", "Essential", "Essential", "Essential", "Essential",
-#         # Conditionally Essential Amino Acids
-#         "Conditionally Essential", "Conditionally Essential", "Conditionally Essential", "Conditionally Essential", "Conditionally Essential", "Conditionally Essential",
-#         # Nonessential Amino Acids
-#         "Nonessential", "Nonessential", "Nonessential", "Nonessential", "Nonessential", "Nonessential", "Nonessential"
-#     ]
+def create_sub_bars(nutrient, json_entry, sub_nutrient_colors):
+    """
+    Create sub-bars for a given macro nutrient.
+    """
+    sub_bars = []
 
-#     # Values for each segment (example values, replace with your actual data) #json_entry.get('calories', 0),
-#     values = [
-#         json_entry.get('protein', 0),
-#         json_entry.get('carbohydrates', 0), 
-#         json_entry.get('fat', 0),
-#         json_entry.get('sugar', 0), 
-#         json_entry.get('fiber', 0), 
-#         json_entry.get('saturated fat', 0), 
-#         json_entry.get('unsaturated fat', 0), 
-#         # Sum of essential amino acids values
-#         sum([json_entry.get(aa, 0) for aa in ['histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'threonine', 'tryptophan', 'valine']]),
-#         # Sum of conditionally essential amino acids values
-#         sum([json_entry.get(aa, 0) for aa in ['arginine', 'cysteine', 'glutamine', 'glycine', 'proline', 'tyrosine']]),
-#         # Sum of nonessential amino acids values
-#         sum([json_entry.get(aa, 0) for aa in ['alanine', 'aspartic acid', 'asparagine', 'glutamic acid', 'serine', 'selenocysteine', 'pyrrolysine']]),
-#         json_entry.get('glucose', 0), 
-#         json_entry.get('fructose', 0), 
-#         json_entry.get('galactose', 0), 
-#         json_entry.get('lactose', 0),
-#         json_entry.get('soluble fiber', 0), 
-#         json_entry.get('insoluble fiber', 0),
-#         # Essential Amino Acids
-#         json_entry.get('histidine', 0), 
-#         json_entry.get('isoleucine', 0), 
-#         json_entry.get('leucine', 0), 
-#         json_entry.get('lysine', 0), 
-#         json_entry.get('methionine', 0), 
-#         json_entry.get('phenylalanine', 0), 
-#         json_entry.get('threonine', 0), 
-#         json_entry.get('tryptophan', 0), 
-#         json_entry.get('valine', 0),
-#         # Conditionally Essential Amino Acids
-#         json_entry.get('arginine', 0), 
-#         json_entry.get('cysteine', 0), 
-#         json_entry.get('glutamine', 0), 
-#         json_entry.get('glycine', 0), 
-#         json_entry.get('proline', 0), 
-#         json_entry.get('tyrosine', 0),
-#         # Nonessential Amino Acids
-#         json_entry.get('alanine', 0), 
-#         json_entry.get('aspartic acid', 0), 
-#         json_entry.get('asparagine', 0), 
-#         json_entry.get('glutamic acid', 0), 
-#         json_entry.get('serine', 0), 
-#         json_entry.get('selenocysteine', 0), 
-#         json_entry.get('pyrrolysine', 0)
-#     ]
+    if nutrient == 'carbohydrates':
+        # Define sub-nutrient colors (lighter hues)
+        color_list = sub_nutrient_colors['carbohydrates']
+        info_id_prefix = 'info-carb'
 
-#     print("LENGTHS: ", len(labels), len(parents), len(values))
+        # Sugar
+        sugar_value = json_entry.get('sugar', 0)
+        monosaccharides = ['glucose', 'fructose', 'galactose', 'lactose']
+        sugar_components = {mono.capitalize(): json_entry.get(mono, 0) for mono in monosaccharides}
+        if sugar_value > 0:
+            sugar_bar = create_stacked_bar(
+                'Sugar',
+                sugar_value,
+                sugar_components,
+                color_list,
+                info_id_prefix
+            )
+            sub_bars.append(sugar_bar)
 
-#     sunburst_chart = dcc.Graph(
-#         figure=go.Figure(
-#             go.Sunburst(
-#                 labels=labels, #["Protein", "Carbs", "Fat"],
-#                 parents=parents,#["", "", ""],
-#                 values=values, #[json_entry.get('protein', 0), json_entry.get('carbohydrates', 0), json_entry.get('fat', 0)],
-#                 branchvalues="total",
-#                 hoverinfo="label+value+percent parent"
-#             ),
-#             layout=go.Layout(
-#                 margin=dict(t=0, l=0, r=0, b=0),
-#                 height=300,
-#                 width=300,
-#                 font=dict(family='Libre Franklin Light'),
-#             )
-#         ),
-#         style={'width': '300px', 'height': '300px'},
-#         config={'responsive': False}
-#     )
+        # Fiber
+        fiber_value = json_entry.get('fiber', 0)
+        fiber_types = ['soluble_fiber', 'insoluble_fiber']
+        fiber_components = {ft.replace('_', ' ').capitalize(): json_entry.get(ft, 0) for ft in fiber_types}
+        if fiber_value > 0:
+            fiber_bar = create_stacked_bar(
+                'Fiber',
+                fiber_value,
+                fiber_components,
+                color_list,
+                info_id_prefix
+            )
+            sub_bars.append(fiber_bar)
 
-#     layout = html.Div([
+        # Complex carbohydrates
+        complex_value = json_entry.get('carbohydrates', 0) - sugar_value - fiber_value
+        if complex_value < 0:
+            complex_value = 0  # Avoid negative values
 
-#         dbc.Row([
-#             dbc.Col([
-#                 html.Div([
-#                     html.H4(json_entry.get('name', ''), style={'fontSize': '22px', 'textAlign': 'center'}),
-#                     html.P(f"{json_entry.get('calories', 0)} kcal", style={'fontSize': '24px', 'textAlign': 'center'}),
-#                     html.H5(meal_type, style={'textAlign': 'center', 'paddingBottom': '10px'}),
-#                 ]),
-#                 html.Div([
-#                     stacked_bar_chart
-#                 ], style={'padding': '10px'}),
-#             ], width=12),
-#         ], style={'padding': '10px'}),
+        complex_types = ['oligosaccharides', 'polysaccharides']
+        complex_components = {ct.capitalize(): json_entry.get(ct, 0) for ct in complex_types}
+        if complex_value > 0:
+            complex_bar = create_stacked_bar(
+                'Complex Carbs',
+                complex_value,
+                complex_components,
+                color_list,
+                info_id_prefix
+            )
+            sub_bars.append(complex_bar)
 
-#         dbc.Row([
-#             dbc.Col([
-#                 sunburst_chart
-#             ], width=12),
-#         ]),
+    elif nutrient == 'fat':
+        # Define sub-nutrient colors (lighter hues)
+        color_list = sub_nutrient_colors['fat']
+        info_id_prefix = 'info-fat'
 
-#         dbc.Row([
-#             dbc.Col([
-#                 html.P(f"Glycemic Index: {json_entry.get('glycemic_index', 'N/A')}", style={'fontSize': '18px'})
-#             ], width=12),
-#         ], style={'textAlign': 'center', 'marginTop': '20px'}),
-#     ], style={'padding': '10px'})
+        # Triglycerides
+        triglycerides_components = {
+            'Unsaturated Fat': json_entry.get('unsaturated_fat', 0),
+            'Saturated Fat': json_entry.get('saturated_fat', 0)
+        }
+        triglycerides_value = sum(triglycerides_components.values())
+        if triglycerides_value > 0:
+            triglycerides_bar = create_stacked_bar(
+                'Triglycerides',
+                triglycerides_value,
+                triglycerides_components,
+                color_list,
+                info_id_prefix
+            )
+            sub_bars.append(triglycerides_bar)
 
-#     return layout
+        # Phospholipids
+        phospholipids_value = json_entry.get('phospholipids', 0)
+        if phospholipids_value > 0:
+            phospholipids_bar = create_stacked_bar(
+                'Phospholipids',
+                phospholipids_value,
+                {'Phospholipids': phospholipids_value},
+                color_list,
+                info_id_prefix
+            )
+            sub_bars.append(phospholipids_bar)
 
+        # Sterols
+        sterols_value = json_entry.get('sterols', 0)
+        if sterols_value > 0:
+            sterols_bar = create_stacked_bar(
+                'Sterols',
+                sterols_value,
+                {'Sterols': sterols_value},
+                color_list,
+                info_id_prefix
+            )
+            sub_bars.append(sterols_bar)
 
-# Updated collate_current_item function
-def collate_current_item(json_entry, weight_input, meal_type):
-    # Creating the circular progress circles
-    calories_circle = create_circular_progress(json_entry.get('calories', 0), 2000, "", "Calories", "#4CAF50", 
-                                               layout_direction='below', radius=65, fontsize_text=16, fontsize_num=30, 
-                                               stroke_width_backgr=8, stroke_width_complete=12, stroke_dashoffset=0)
-    glycemic_index = html.P(f"Glycemic Index: {json_entry.get('glycemic_index', 'N/A')}", style={'fontSize': '20px', 'textAlign': 'center', 'marginBottom': '20px'})
+    elif nutrient == 'protein':
+        # Define sub-nutrient colors (lighter hues)
+        color_list = sub_nutrient_colors['protein']
+        info_id_prefix = 'info-protein'
 
-    carbs_circle = create_circular_progress(json_entry.get('carbohydrates', 0), 300, "g", "Carbs", "#ff9999", 
-                                            layout_direction='below', radius=45, fontsize_text=14, fontsize_num=24)
-
-    protein_circle = create_circular_progress(json_entry.get('protein', 0), 150, "g", "Protein", "#66b3ff", 
-                                              layout_direction='below', radius=45, fontsize_text=14, fontsize_num=24)
-
-    fat_circle = create_circular_progress(json_entry.get('fat', 0), 70, "g", "Fat", "#99ff99", 
-                                          layout_direction='below', radius=45, fontsize_text=14, fontsize_num=24)
-
-    # Carbs details
-    carbs_details = html.Div([
-        html.P(f"Sugar: {json_entry.get('sugar', 0)}g", style={'color': 'black'}),
-        html.P(f"Glucose: {json_entry.get('glucose', 0)}g", style={'color': 'grey'}),
-        html.P(f"Fructose: {json_entry.get('fructose', 0)}g", style={'color': 'grey'}),
-        html.P(f"Galactose: {json_entry.get('galactose', 0)}g", style={'color': 'grey'}),
-        html.P(f"Lactose: {json_entry.get('lactose', 0)}g", style={'color': 'grey'}),
-        html.P(f"Fiber: {json_entry.get('fiber', 0)}g", style={'color': 'black'}),
-        html.P(f"Soluble Fiber: {json_entry.get('soluble_fiber', 0)}g", style={'color': 'grey'}),
-        html.P(f"Insoluble Fiber: {json_entry.get('insoluble_fiber', 0)}g", style={'color': 'grey'}),
-    ])
-
-    # Fat details
-    fat_details = html.Div([
-        html.P(f"Fat: {json_entry.get('fat', 0)}g", style={'color': 'black'}),
-        html.P(f"Saturated Fat: {json_entry.get('saturated_fat', 0)}g", style={'color': 'grey'}),
-        html.P(f"Unsaturated Fat: {json_entry.get('unsaturated_fat', 0)}g", style={'color': 'grey'}),
-    ])
-
-    # Protein details
-    protein_details = html.Div([
         # Essential Amino Acids
-        html.P(f"Essential Amino Acids: {sum([json_entry.get(aa, 0) for aa in ['histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'threonine', 'tryptophan', 'valine']])}g", style={'color': 'black'}),
-        html.P(f"Histidine: {json_entry.get('histidine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Isoleucine: {json_entry.get('isoleucine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Leucine: {json_entry.get('leucine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Lysine: {json_entry.get('lysine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Methionine: {json_entry.get('methionine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Phenylalanine: {json_entry.get('phenylalanine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Threonine: {json_entry.get('threonine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Tryptophan: {json_entry.get('tryptophan', 0)}g", style={'color': 'grey'}),
-        html.P(f"Valine: {json_entry.get('valine', 0)}g", style={'color': 'grey'}),
-        
+        essential_aa_list = ['histidine', 'isoleucine', 'leucine', 'lysine', 'methionine',
+                             'phenylalanine', 'threonine', 'tryptophan', 'valine']
+        essential_aa_components = {aa.capitalize(): json_entry.get(aa, 0) for aa in essential_aa_list}
+        essential_total = sum(essential_aa_components.values())
+        if essential_total > 0:
+            essential_bar = create_stacked_bar(
+                'Essential Amino Acids',
+                essential_total,
+                essential_aa_components,
+                color_list,
+                info_id_prefix
+            )
+            sub_bars.append(essential_bar)
+
         # Conditionally Essential Amino Acids
-        html.P(f"Conditionally Essential Amino Acids: {sum([json_entry.get(aa, 0) for aa in ['arginine', 'cysteine', 'glutamine', 'glycine', 'proline', 'tyrosine']])}g", style={'color': 'black'}),
-        html.P(f"Arginine: {json_entry.get('arginine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Cysteine: {json_entry.get('cysteine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Glutamine: {json_entry.get('glutamine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Glycine: {json_entry.get('glycine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Proline: {json_entry.get('proline', 0)}g", style={'color': 'grey'}),
-        html.P(f"Tyrosine: {json_entry.get('tyrosine', 0)}g", style={'color': 'grey'}),
+        cond_essential_aa_list = ['arginine', 'cysteine', 'glutamine', 'glycine', 'proline', 'tyrosine']
+        cond_essential_aa_components = {aa.capitalize(): json_entry.get(aa, 0) for aa in cond_essential_aa_list}
+        cond_essential_total = sum(cond_essential_aa_components.values())
+        if cond_essential_total > 0:
+            cond_essential_bar = create_stacked_bar(
+                'Conditionally Essential Amino Acids',
+                cond_essential_total,
+                cond_essential_aa_components,
+                color_list,
+                info_id_prefix
+            )
+            sub_bars.append(cond_essential_bar)
 
         # Nonessential Amino Acids
-        html.P(f"Nonessential Amino Acids: {sum([json_entry.get(aa, 0) for aa in ['alanine', 'aspartic acid', 'asparagine', 'glutamic acid', 'serine', 'selenocysteine', 'pyrrolysine']])}g", style={'color': 'black'}),
-        html.P(f"Alanine: {json_entry.get('alanine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Aspartic Acid: {json_entry.get('aspartic acid', 0)}g", style={'color': 'grey'}),
-        html.P(f"Asparagine: {json_entry.get('asparagine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Glutamic Acid: {json_entry.get('glutamic acid', 0)}g", style={'color': 'grey'}),
-        html.P(f"Serine: {json_entry.get('serine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Selenocysteine: {json_entry.get('selenocysteine', 0)}g", style={'color': 'grey'}),
-        html.P(f"Pyrrolysine: {json_entry.get('pyrrolysine', 0)}g", style={'color': 'grey'}),
-    ])
+        nonessential_aa_list = ['alanine', 'aspartic acid', 'asparagine', 'glutamic acid',
+                                'serine', 'selenocysteine', 'pyrrolysine']
+        nonessential_aa_components = {aa.capitalize(): json_entry.get(aa, 0) for aa in nonessential_aa_list}
+        nonessential_total = sum(nonessential_aa_components.values())
+        if nonessential_total > 0:
+            nonessential_bar = create_stacked_bar(
+                'Nonessential Amino Acids',
+                nonessential_total,
+                nonessential_aa_components,
+                color_list,
+                info_id_prefix
+            )
+            sub_bars.append(nonessential_bar)
 
+    return sub_bars
 
-    # Define the layout
+def create_nutrient_bubbles(json_entry):
+    """
+    Create nutrient bubbles for minerals and vitamins using circlify.
+    """
+    # Define nutrients and their groups
+    nutrients_info = [
+        {
+            'nutrients': ['iron', 'magnesium', 'zinc', 'calcium', 'potassium', 'sodium'],
+            'group': 'Minerals',
+            'color': 'darkgrey',
+        },
+        {
+            'nutrients': ['phosphorus', 'copper', 'manganese', 'selenium', 'chromium', 'molybdenum', 'iodine'],
+            'group': 'Detailed Minerals',
+            'color': 'lightgrey',
+        },
+        {
+            'nutrients': ['vitamin a', 'vitamin c', 'vitamin d', 'vitamin e', 'vitamin k', 'vitamin b'],
+            'group': 'Vitamins',
+            'color': 'firebrick',
+        },
+        {
+            'nutrients': ['thiamin (b1)', 'riboflavin (b2)', 'niacin (b3)', 'vitamin b6', 'folate (b9)', 'vitamin b12', 'biotin', 'pantothenic acid (b5)'],
+            'group': 'Detailed Vitamins',
+            'color': 'coral',
+        },
+    ]
+
+    # Collect nutrient data
+    nutrient_data = []
+    for info in nutrients_info:
+        for nutrient in info['nutrients']:
+            key = nutrient.replace(' ', '_').replace('(', '').replace(')', '').replace('-', '_').lower()
+
+            # Safely convert the value to a float, or use 0 if conversion fails
+            value = json_entry.get(key, 0)
+            try:
+                value = float(value)  # Attempt to convert to float
+            except ValueError:
+                value = 0  # Default to 0 if the conversion fails
+
+            if value > 0:
+                nutrient_data.append({
+                    'id': nutrient.capitalize(),
+                    'datum': value,
+                    'group': info['group'],
+                    'color': info['color'],
+                })
+
+    if nutrient_data:
+        # Prepare data for circlify
+        total_value = sum(item['datum'] for item in nutrient_data)
+        circles = circlify.circlify(
+            [item['datum'] for item in nutrient_data],
+            show_enclosure=False,
+            target_enclosure=circlify.Circle(x=0, y=0, r=1)
+        )
+
+        # Create a DataFrame with circle positions
+        for i, circle in enumerate(circles):
+            nutrient_data[i]['x'] = circle.x
+            nutrient_data[i]['y'] = circle.y
+            nutrient_data[i]['r'] = circle.r
+
+        df = pd.DataFrame(nutrient_data)
+
+        # Determine which labels to show based on minimum radius
+        min_radius_for_label = 0.05  # Adjust as needed
+        df['show_label'] = df['r'] >= min_radius_for_label
+
+        # Create bubble chart
+        fig = px.scatter(df, x='x', y='y',
+                         size='r', color='group', hover_name='id',
+                         color_discrete_map={
+                             'Minerals': 'darkgrey',
+                             'Detailed Minerals': 'lightgrey',
+                             'Vitamins': 'firebrick',
+                             'Detailed Vitamins': 'coral'
+                         },
+                         size_max=60,
+                         labels={'group': 'Category'}
+                         )
+
+        # Add labels for larger bubbles
+        for _, row in df.iterrows():
+            if row['show_label']:
+                fig.add_annotation(
+                    x=row['x'],
+                    y=row['y'],
+                    text=row['id'],
+                    showarrow=False,
+                    font_size=12,
+                    font_color='white' if row['color'] in ['firebrick', 'coral'] else 'black',
+                )
+
+        fig.update_traces(mode='markers', marker=dict(sizemode='area', sizeref=2.*max(df['r'])/(60.**2)))
+        fig.update_layout(showlegend=True, xaxis={'visible': False}, yaxis={'visible': False},
+                          margin=dict(l=20, r=20, t=20, b=20), height=400)
+        fig.update_layout(plot_bgcolor='white')
+
+        bubble_chart = dcc.Graph(figure=fig)
+        return bubble_chart
+    else:
+        return html.Div("No minerals or vitamins data available.")
+
+def collate_current_item(json_entry, weight_input, meal_type, recommended_intakes):
+    """
+    Collate the current item into a layout with macro and sub-nutrient progress bars.
+    """
+    # Colors for each nutrient (pastel colors as specified)
+    nutrient_colors = {
+        'calories': '#ff9999',        # Pastel red
+        'carbohydrates': '#6699cc',   # Darker blue
+        'fat': '#ffcc99',             # Yellow-orange
+        'protein': '#99cc99',         # Pastel green
+    }
+
+    # Sub-colors for each nutrient (lighter hues)
+    sub_nutrient_colors = {
+        'carbohydrates': ['#cce0ff', '#d9e6f2', '#e6f2ff', '#f2f9ff', '#f9fcff'],
+        'fat': ['#fff2e6', '#fff7eb', '#fffbf2', '#fff0e6', '#ffe6d9'],
+        'protein': ['#e6ffe6', '#f2fff2', '#f9fff9', '#e6ffe6', '#ccffcc'],
+    }
+
+    header = create_header(json_entry)
+    progress_bars = []
+    sub_bars_list = []  # To store sub-bars and their associated toggles
+
+    for nutrient, recommended_value in recommended_intakes.items():
+        actual_value = json_entry.get(nutrient, 0)
+        macro_bar = create_macro_bar(nutrient, actual_value, recommended_value, nutrient_colors)
+        progress_bars.append(macro_bar)
+
+        # Create sub-bars
+        sub_bars = create_sub_bars(nutrient, json_entry, sub_nutrient_colors)
+
+        if sub_bars:
+            # Wrap sub-bars in a Collapse component
+            collapse = dbc.Collapse(
+                sub_bars,
+                id={'type': 'collapse', 'index': nutrient},
+                is_open=False,
+            )
+            sub_bars_list.append(collapse)
+        else:
+            sub_bars_list.append(html.Div())  # Placeholder if no sub-bars
+
+    # Create nutrient bubbles
+    nutrient_bubbles = create_nutrient_bubbles(json_entry)
+
+    # Combine all parts into a layout
     layout = html.Div([
-
-        dbc.Row([
-            dbc.Col([
-                html.Div([
-                    html.H4(json_entry.get('name', ''), style={'fontSize': '22px', 'textAlign': 'center'}),
-                    html.P(f"{json_entry.get('calories', 0)} kcal", style={'fontSize': '24px', 'textAlign': 'center'}),
-                    html.H5(meal_type, style={'textAlign': 'center', 'paddingBottom': '10px'}),
-                ]),
-            ], width=12),
-        ], style={'padding': '10px'}),
-
-    # Circular progress bars for Calories, Glycemic Index, Carbs, Protein, and Fat
-    dbc.Row([
-        dbc.Col([calories_circle], width=12, style={'textAlign': 'center', 'paddingBottom': '10px'}),
-        
-        # Glycemic Index below the Calories circle
-        dbc.Col([
-            html.P(f"Glycemic Index: {json_entry.get('glycemic_index', 'N/A')}", 
-                style={'fontSize': '20px', 'textAlign': 'center', 'marginBottom': '20px'})
-        ], width=12),
-        
-        # Carbs, Protein, and Fat circles
-        dbc.Col([
-            html.Div([
-                carbs_circle, 
-                protein_circle, 
-                fat_circle
-            ], style={'display': 'flex', 'justify-content': 'space-around'}),
-        ], width=12),
-    ]),
-
-        # Three columns for additional information
-        dbc.Row([
-            dbc.Col([carbs_details], width=4),
-            dbc.Col([protein_details], width=4),
-            dbc.Col([fat_details], width=4),
+        header,
+        html.Div([
+            item for pair in zip(progress_bars, sub_bars_list) for item in pair
         ]),
-
+        html.Hr(),
+        html.Div([
+            html.H4("Minerals and Vitamins", style={'text-align': 'center', 'margin-top': '20px'}),
+            nutrient_bubbles
+        ])
     ], style={'padding': '10px'})
 
     return layout
