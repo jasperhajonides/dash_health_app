@@ -20,7 +20,7 @@ from pages.nutrition_page_parts.log_entries_mobile import create_todays_entries_
 from pages.login_mobile import create_login_layout, register_login_callbacks, create_login_validation_layout
 from pages.profile_mobile import create_profile_layout, register_profile_callbacks
 from pages.navigation_mobile import create_navbar, register_navbar_callbacks
-
+from pages.main_page_visualisations import register_visualisation_callbacks
 # Set your Google Cloud Storage bucket name
 GCS_BUCKET = 'dash_health_store'
 
@@ -198,16 +198,49 @@ def display_page(pathname, session_data):
                     ], className='mb-3'),
 
                     # display log entries for today
-                    html.Div(id='todays-entries-container'),
+                    # html.Div(id='todays-entries-container'),
 
-                    # Display Nutritional Data Card
-                    dbc.Card([
-                        dbc.CardHeader(html.H5("Display Daily Nutritional Summary")),
-                        dbc.CardBody([
-                            dbc.Button('Display Nutritional Data', id='display-button', color='warning', className='mt-3'),
-                            html.Div(id='output-nutrition-data', className='mt-2')
-                        ])
-                    ], className='mb-3'),
+                    # # Display Nutritional Data Card
+                    # dbc.Card([
+                    #     dbc.CardHeader(html.H5("Display Daily Nutritional Summary")),
+                    #     dbc.CardBody([
+                    #         dbc.Button('Display Nutritional Data', id='display-button', color='warning', className='mt-3'),
+                    #         html.Div(id='output-nutrition-data', className='mt-2')
+                    #     ])
+                    # ], className='mb-3'),
+
+                    # Button group
+                    # Define the button group
+                    dbc.ButtonGroup(
+                        [
+                            dbc.Button(
+                                html.I(className="fa fa-list"),  # Icon for the first button
+                                id='btn-todays-entries',
+                                color='secondary',  # Low-contrast color
+                                outline=True,       # Outline style for low contrast
+                                className='btn-icon'
+                            ),
+                            dbc.Button(
+                                html.I(className="fa fa-chart-bar"),  # Icon for the second button
+                                id='btn-calorie-history',
+                                color='secondary',
+                                outline=True,
+                                className='btn-icon'
+                            ),
+                            dbc.Button(
+                                html.I(className="fa fa-chart-line"),  # Icon for the third button
+                                id='btn-cumulative-calories',
+                                color='secondary',
+                                outline=True,
+                                className='btn-icon'
+                            ),
+                        ],
+                        size='lg',  # Adjust button size
+                        className='mb-3',
+                    ),
+
+                    # Content container
+                    html.Div(id='content-container'),
 
                     
 
@@ -218,6 +251,9 @@ def display_page(pathname, session_data):
                     dcc.Store(id='data-refresh-trigger'),  # New store to trigger data refresh
                     dcc.Interval(id='interval-startup', interval=1*1000, n_intervals=0, max_intervals=1),
                     dcc.Store(id='selected-date-store', data=str(datetime.date.today())),
+                    dcc.Store(id='active-button', data='btn-todays-entries'), # for visualisations main page
+                    dcc.Store(id='past-14-days-data', data=[]), # for visualisation
+
                 ], fluid=True)
 
             ])
@@ -240,7 +276,7 @@ def display_page(pathname, session_data):
 register_login_callbacks(app)
 register_profile_callbacks(app)
 register_navbar_callbacks(app)
-
+register_visualisation_callbacks(app)
     
 # Callback to fetch today's nutritional data on page load or when new data is uploaded or deleted
 import datetime
@@ -292,6 +328,9 @@ def fetch_todays_data(n_intervals, upload_status, refresh_trigger, selected_date
     except Exception as e:
         print(f"Error fetching data from Supabase: {str(e)}")
         return []
+
+# FOR VISUALISATION main_page_visualisation
+
 
 
 # Callback to update daily progress section

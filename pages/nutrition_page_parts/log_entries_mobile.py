@@ -35,9 +35,14 @@ def create_todays_entries_layout(todays_nutritional_data):
     )
 
     # Title
+    if todays_nutritional_data:
+        title_ = "Today's Entries"
+    else:
+        title_ = ''
     section = [
-        html.H4("Today's Entries", style={'margin-top': '30px', 'text-align': 'center'})
+        html.H4(title_, style={'margin-top': '30px', 'text-align': 'center'})
     ]
+    
 
     # Styles
     entry_row_style = {

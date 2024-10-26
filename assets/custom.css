@@ -47,3 +47,27 @@ body {
 #nutritional-info {
     /* Add any additional styling as needed */
 }
+
+
+
+/* -------- for main mobile app page visualisations */
+
+.btn-icon {
+    width: 100px;
+    height: 100px;
+    font-size: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    margin: 5px;
+}
+
+.btn-icon .fa {
+    margin: 0;
+}
+
+.btn-icon:focus {
+    outline: none;
+    box-shadow: none;
+}
