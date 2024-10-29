@@ -71,3 +71,31 @@ body {
     outline: none;
     box-shadow: none;
 }
+
+
+/*  For delete image button */
+.image-preview-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* Style for the delete button */
+#delete-image-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    display: none; /* Hidden by default */
+}
+
+/* Show the delete button when the image is present */
+#uploaded-image[src]:hover + #delete-image-button {
+    display: block;
+}

@@ -20,3 +20,4 @@ supabase
 google-cloud-storage
 gunicorn
 circlify
+diskcache

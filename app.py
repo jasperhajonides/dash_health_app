@@ -1,5 +1,6 @@
 import dash
 from dash import html, dcc, Input, Output, State, callback_context, MATCH, ALL
+import time
 
 import os
 import datetime
@@ -7,6 +8,7 @@ import dash_bootstrap_components as dbc
 import base64
 from dotenv import load_dotenv
 import json
+import diskcache
 
 
 # Import utility modules
@@ -27,9 +29,19 @@ GCS_BUCKET = 'dash_health_store'
 # Load environment variables
 load_dotenv()
 
+
+# Ensure cache directory is outside the main process to prevent conflicts
+if 'DASH_DEBUG_MODE' in os.environ:
+    cache = diskcache.Cache("./cache")
+else:
+    cache = diskcache.Cache("/tmp/cache")
+background_callback_manager = dash.long_callback.DiskcacheLongCallbackManager(cache)
+
+
 # Initialize the app with a Bootstrap theme
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.MINTY],
-                    suppress_callback_exceptions=True  # Add this parameter
+                    suppress_callback_exceptions=True,  # Add this parameter
+                    background_callback_manager=background_callback_manager,
 )
 
 server = app.server  # Expose the Flask server
@@ -65,36 +77,6 @@ def display_page(pathname, session_data):
             return html.Div([
                 create_navbar(),
                 dbc.Container([
-                    # # Top Bar with date and menu dropdown at the far right
-                    # dbc.Navbar(
-                    #     dbc.Container([
-                    #         dbc.Row([
-                    #             dbc.Col(
-                    #                 html.H5(current_date, className='date-header'),
-                    #                 width='auto'
-                    #             ),
-                    #             dbc.Col(
-                    #                 dbc.DropdownMenu(
-                    #                     children=[
-                    #                         dbc.DropdownMenuItem("Menu Item 1"),
-                    #                         dbc.DropdownMenuItem("Menu Item 2"),
-                    #                     ],
-                    #                     nav=True,
-                    #                     in_navbar=True,
-                    #                     label="Menu",
-                    #                     className='menu-dropdown'
-                    #                 ),
-                    #                 width='auto',
-                    #                 style={'margin-left': 'auto'}
-                    #             ),
-                    #         ], align='center', className='flex-nowrap g-0', style={'width': '100%'})
-                    #     ]),
-                    #     color='lightseagreen',
-                    #     dark=False,
-                    #     className='mb-3',
-                    #     style={'border-bottom-left-radius': '15px', 'border-bottom-right-radius': '15px'}
-                    # ),
-
                     # Daily Progress Section
                     html.Div(id='daily-progress', className='daily-progress-section'),
 
@@ -102,21 +84,74 @@ def display_page(pathname, session_data):
                     html.Div([
                         # First Row: Image and Buttons
                         dbc.Row([
+
+
+                            # ### old code for image preview
+                            # dbc.Col(
+                            #     html.Div(id='output-image-preview', className='image-preview-container'),
+                            #     width={'size': 4, 'order': 1},  # Image first on larger screens
+                            #     xs=12,  # Full width on extra small screens
+                            #     md=4    # 4-column width on medium screens and up
+                            # ),
+
+                            # First Row: Image and Buttons
                             dbc.Col(
-                                html.Div(id='output-image-preview', className='image-preview-container'),
+                                html.Div([
+                                    # Image Display with Delete Button
+                                    html.Div([
+                                        html.Img(id='uploaded-image', src='', style={'width': '100%'}),
+                                        html.Button(
+                                            '✖',  # Cross symbol
+                                            id='delete-image-button',
+                                            n_clicks=0,
+                                            style={
+                                                'position': 'absolute',
+                                                'top': '5px',
+                                                'right': '5px',
+                                                'background-color': 'rgba(255, 255, 255, 0.7)',
+                                                'border': 'none',
+                                                'border-radius': '50%',
+                                                'width': '25px',
+                                                'height': '25px',
+                                                'cursor': 'pointer',
+                                                'font-size': '16px',
+                                                'font-weight': 'bold',
+                                                'display': 'none'  # Hidden by default
+                                            }
+                                        )
+                                    ], style={'position': 'relative', 'display': 'inline-block'}),
+                                ], id='output-image-preview', className='image-preview-container'),
                                 width={'size': 4, 'order': 1},  # Image first on larger screens
                                 xs=12,  # Full width on extra small screens
                                 md=4    # 4-column width on medium screens and up
                             ),
+
                             dbc.Col(
                                 html.Div([
-                                    dcc.Upload(
+
+
+                                    # old code for upload image
+                                    # dcc.Upload(
+                                    #     id='upload-image',
+                                    #     children=dbc.Button('Upload Image', color='primary', className='mt-2', style={'border-radius': '10px', 'width': '150px'}),
+                                    #     multiple=False
+                                    # ),
+
+                                     dcc.Upload(
                                         id='upload-image',
-                                        children=dbc.Button('Upload Image', color='primary', className='mt-2', style={'border-radius': '10px', 'width': '150px'}),
+                                        children=dbc.Button('Upload Image', color='primary', className='mt-2',
+                                                            style={'border-radius': '10px', 'width': '150px'}),
                                         multiple=False
                                     ),
-                                    dbc.Button('Calculate', id='calculate-button', color='success', className='mt-2', style={'border-radius': '10px', 'width': '150px'}),
-                                    html.Div(id='output-calculate-status', className='mt-2')
+
+                                    dbc.Button('Calculate', id='calculate-button', color='success', className='mt-2',
+                                            style={'border-radius': '10px', 'width': '150px'}),
+                                    # Loading spinner wraps the status message
+                                    dcc.Loading(
+                                        id='loading-calculate-status',
+                                        type='default',  # Options: 'default', 'circle', 'dot'
+                                        children=html.Div(id='output-calculate-status', className='mt-2')
+                                    )
                                 ], className='buttons-container'),
                                 width={'size': 8, 'order': 2},  # Buttons second on larger screens
                                 xs=12,  # Full width on extra small screens
@@ -141,7 +176,8 @@ def display_page(pathname, session_data):
                                 width=6
                             ),
                             dbc.Col(
-                                dbc.Input(id='image-description', type='text', placeholder='e.g., Grilled Chicken Salad', className='mt-2'),
+                                dbc.Input(id='image-description', type='text',
+                                        placeholder='e.g., Grilled Chicken Salad', className='mt-2'),
                                 width=6
                             )
                         ], className='entries-row'),
@@ -152,14 +188,17 @@ def display_page(pathname, session_data):
                                 html.Div([
                                     dbc.InputGroup([
                                         dbc.InputGroupText("Weight (grams):"),
-                                        dbc.Input(id='weight-input', type='number', min=1, step=1, placeholder='Enter weight'),
-                                        dbc.Button('Update', id='update-nutrition-button', color='secondary', className='ms-2'),
+                                        dbc.Input(id='weight-input', type='number', min=1, step=1,
+                                                placeholder='Enter weight'),
+                                        dbc.Button('Update', id='update-nutrition-button', color='secondary',
+                                                className='ms-2'),
                                     ], className='mt-2'),
                                 ], id='weight-adjustment-div', style={'display': 'none'}),
                                 width=12
                             )
                         ], className='entries-row'),
-                    ], className='entries-section', style={'background-color': 'skyblue', 'padding': '10px', 'border-radius': '15px'}),
+                    ], className='entries-section',
+                        style={'background-color': 'skyblue', 'padding': '10px', 'border-radius': '15px'}),
 
                     # Nutritional Information Section
                     dbc.Card([
@@ -170,9 +209,8 @@ def display_page(pathname, session_data):
                     ], className='mb-3'),
 
                     # Upload to Google Cloud Section
-                    dcc.Interval(id='upload-status-interval', interval=2000, n_intervals=0, max_intervals=1),  # 10 seconds timeout
+                    dcc.Interval(id='upload-status-interval', interval=2000, n_intervals=0, max_intervals=1),  # 2 seconds timeout
 
-                    # Upload to Google Cloud Section
                     dbc.Card([
                         dbc.CardHeader(html.H5("Upload to Google Cloud")),
                         dbc.CardBody([
@@ -193,24 +231,10 @@ def display_page(pathname, session_data):
                                     'zIndex': 1500,  # Ensure it appears above other elements
                                 },
                             ),
-
                         ])
                     ], className='mb-3'),
 
-                    # display log entries for today
-                    # html.Div(id='todays-entries-container'),
-
-                    # # Display Nutritional Data Card
-                    # dbc.Card([
-                    #     dbc.CardHeader(html.H5("Display Daily Nutritional Summary")),
-                    #     dbc.CardBody([
-                    #         dbc.Button('Display Nutritional Data', id='display-button', color='warning', className='mt-3'),
-                    #         html.Div(id='output-nutrition-data', className='mt-2')
-                    #     ])
-                    # ], className='mb-3'),
-
                     # Button group
-                    # Define the button group
                     dbc.ButtonGroup(
                         [
                             dbc.Button(
@@ -242,8 +266,6 @@ def display_page(pathname, session_data):
                     # Content container
                     html.Div(id='content-container'),
 
-                    
-
                     # Hidden stores for nutritional data
                     dcc.Store(id='nutritional-json-data'),
                     dcc.Store(id='adjusted-nutritional-json-data'),
@@ -251,12 +273,15 @@ def display_page(pathname, session_data):
                     dcc.Store(id='data-refresh-trigger'),  # New store to trigger data refresh
                     dcc.Interval(id='interval-startup', interval=1*1000, n_intervals=0, max_intervals=1),
                     dcc.Store(id='selected-date-store', data=str(datetime.date.today())),
-                    dcc.Store(id='active-button', data='btn-todays-entries'), # for visualisations main page
-                    dcc.Store(id='past-14-days-data', data=[]), # for visualisation
+                    dcc.Store(id='active-button', data='btn-todays-entries'),  # for visualisations main page
+                    dcc.Store(id='past-14-days-data', data=[]),  # for visualisation
 
                 ], fluid=True)
-
             ])
+
+
+
+
         else:
             return create_login_layout()
     elif pathname == '/profile':
@@ -328,8 +353,39 @@ def fetch_todays_data(n_intervals, upload_status, refresh_trigger, selected_date
     except Exception as e:
         print(f"Error fetching data from Supabase: {str(e)}")
         return []
+    
 
-# FOR VISUALISATION main_page_visualisation
+    from dash import callback_context
+from dash.exceptions import PreventUpdate
+from dash import callback_context
+from dash.exceptions import PreventUpdate
+
+from dash import callback_context
+from dash.exceptions import PreventUpdate
+
+@app.callback(
+    [Output('uploaded-image', 'src'),
+     Output('delete-image-button', 'style')],
+    [Input('upload-image', 'contents'),
+     Input('delete-image-button', 'n_clicks')],
+    prevent_initial_call=True
+)
+def update_image(contents, n_clicks):
+    ctx = callback_context
+
+    if not ctx.triggered:
+        raise PreventUpdate
+    else:
+        prop_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+        if prop_id == 'upload-image' and contents:
+            # Show the image and display the delete button
+            return contents, {'display': 'block'}
+        elif prop_id == 'delete-image-button' and n_clicks:
+            # Clear the image and hide the delete button
+            return '', {'display': 'none'}
+        else:
+            raise PreventUpdate
 
 
 
@@ -387,60 +443,96 @@ def update_daily_progress(todays_data):
     else:
         return html.Div("No data for today.")
 
-# Callback to display image preview
-@app.callback(
-    Output('output-image-preview', 'children'),
-    Input('upload-image', 'contents'),
-    State('upload-image', 'filename')
+# # Callback to display image preview
+# @app.callback(
+#     Output('output-image-preview', 'children'),
+#     Input('upload-image', 'contents'),
+#     State('upload-image', 'filename')
+# )
+# def update_image_preview(image_contents, filename):
+#     if image_contents is not None:
+#         # Process the image (auto-rotate, crop to square, and resize)
+#         src_str, base64_image = process_image(image_contents)
+
+#         if src_str:
+#             # Define the image style with gradient border and rounded edges
+#             image_style = {
+#                 'width': '128px',
+#                 'height': '128px',
+#                 'border-radius': '15px',
+#                 'border': '5px solid transparent',  # Gradient border
+#                 'background-image': 'linear-gradient(white, white), linear-gradient(to right, lightblue, darkblue)',
+#                 'background-origin': 'border-box',
+#                 'background-clip': 'content-box, border-box'
+#             }
+#             # Display the image preview
+#             return html.Img(src=src_str, style=image_style)
+#     return None
+
+import time
+from dash.long_callback import DiskcacheLongCallbackManager
+
+
+@app.long_callback(
+    output=[
+        Output('output-calculate-status', 'children'),
+        Output('nutritional-json-data', 'data'),
+        Output('weight-adjustment-div', 'style')
+    ],
+    inputs=[
+        Input('calculate-button', 'n_clicks'),
+        State('upload-image', 'contents'),
+        State('image-description', 'value')
+    ],
+    progress=[Output('output-calculate-status', 'children')],
+    running=[
+        (Output('calculate-button', 'disabled'), True, False),
+        (Output('upload-image', 'disabled'), True, False),
+        (Output('image-description', 'disabled'), True, False),
+    ],
+    prevent_initial_call=True
 )
-def update_image_preview(image_contents, filename):
-    if image_contents is not None:
-        # Process the image (auto-rotate, crop to square, and resize)
+def calculate_nutritional_info(set_progress, n_clicks, image_contents, description):
+    if n_clicks is None or n_clicks == 0:
+        return ("", None, {'display': 'none'})
+
+    if not image_contents and not description:
+        set_progress(html.Div("Please add an image or text description."))
+        return ("Please add an image or text description.", None, {'display': 'none'})
+
+    import time
+    start_time = time.time()
+
+    base64_image = None
+    if image_contents:
+        set_progress(html.Div("Processing image..."))
+        # Simulate image processing time
+        # time.sleep(1)
         src_str, base64_image = process_image(image_contents)
 
-        if src_str:
-            # Define the image style with gradient border and rounded edges
-            image_style = {
-                'width': '128px',
-                'height': '128px',
-                'border-radius': '15px',
-                'border': '5px solid transparent',  # Gradient border
-                'background-image': 'linear-gradient(white, white), linear-gradient(to right, lightblue, darkblue)',
-                'background-origin': 'border-box',
-                'background-clip': 'content-box, border-box'
-            }
-            # Display the image preview
-            return html.Img(src=src_str, style=image_style)
-    return None
+    set_progress(html.Div("Calculating nutritional information..."))
+    # Simulate API call duration
+    # time.sleep(1)
 
-# Callback to calculate nutritional information
-@app.callback(
-    Output('output-calculate-status', 'children'),
-    Output('nutritional-json-data', 'data'),
-    Output('weight-adjustment-div', 'style'),
-    Input('calculate-button', 'n_clicks'),
-    State('upload-image', 'contents'),
-    State('image-description', 'value')
-)
-def calculate_nutritional_info(n_clicks, image_contents, description):
-    if n_clicks is not None and n_clicks > 0 and image_contents is not None:
-        # Process the image
-        src_str, base64_image = process_image(image_contents)
+    # Get nutritional information
+    json_nutrition_std = get_nutritional_info(base64_image, description, detail='core')
 
-        if base64_image:
-            # Get nutritional information
-            json_nutrition_std = get_nutritional_info(base64_image, description, detail='all')
+    if json_nutrition_std:
+        end_time = time.time()
+        calculation_time = end_time - start_time
+        json_nutrition_std['calculation_time'] = calculation_time
 
-            if json_nutrition_std:
-                # Show the weight adjustment div
-                return (
-                    "Nutritional information calculated successfully.",
-                    json_nutrition_std,
-                    {'display': 'block'}
-                )
-            else:
-                return ("Error in nutritional analysis.", None, {'display': 'none'})
-    return ("", None, {'display': 'none'})
+        set_progress(html.Div(f"Nutritional information calculated successfully in {calculation_time:.2f} seconds."))
+
+        return (
+            f"Nutritional information calculated successfully in {calculation_time:.2f} seconds.",
+            json_nutrition_std,
+            {'display': 'block'}
+        )
+    else:
+        set_progress(html.Div("Error in nutritional analysis."))
+        return ("Error in nutritional analysis.", None, {'display': 'none'})
+
 
 # Callback to adjust nutritional values based on weight input
 @app.callback(
