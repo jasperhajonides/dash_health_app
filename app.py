@@ -37,9 +37,15 @@ else:
     cache = diskcache.Cache("/tmp/cache")
 background_callback_manager = dash.long_callback.DiskcacheLongCallbackManager(cache)
 
+external_stylesheets = [
+    dbc.themes.MINTY,
+    "https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+]
+
+
 
 # Initialize the app with a Bootstrap theme
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.MINTY],
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets,
                     suppress_callback_exceptions=True,  # Add this parameter
                     background_callback_manager=background_callback_manager,
 )
@@ -84,17 +90,6 @@ def display_page(pathname, session_data):
                     html.Div([
                         # First Row: Image and Buttons
                         dbc.Row([
-
-
-                            # ### old code for image preview
-                            # dbc.Col(
-                            #     html.Div(id='output-image-preview', className='image-preview-container'),
-                            #     width={'size': 4, 'order': 1},  # Image first on larger screens
-                            #     xs=12,  # Full width on extra small screens
-                            #     md=4    # 4-column width on medium screens and up
-                            # ),
-
-                            # First Row: Image and Buttons
                             dbc.Col(
                                 html.Div([
                                     # Image Display with Delete Button
@@ -125,33 +120,32 @@ def display_page(pathname, session_data):
                                 xs=12,  # Full width on extra small screens
                                 md=4    # 4-column width on medium screens and up
                             ),
-
                             dbc.Col(
                                 html.Div([
-
-
-                                    # old code for upload image
-                                    # dcc.Upload(
-                                    #     id='upload-image',
-                                    #     children=dbc.Button('Upload Image', color='primary', className='mt-2', style={'border-radius': '10px', 'width': '150px'}),
-                                    #     multiple=False
-                                    # ),
-
-                                     dcc.Upload(
+                                    # Upload Button
+                                    dcc.Upload(
                                         id='upload-image',
                                         children=dbc.Button('Upload Image', color='primary', className='mt-2',
                                                             style={'border-radius': '10px', 'width': '150px'}),
                                         multiple=False
                                     ),
-
+                                    # Calculate Button
                                     dbc.Button('Calculate', id='calculate-button', color='success', className='mt-2',
                                             style={'border-radius': '10px', 'width': '150px'}),
-                                    # Loading spinner wraps the status message
-                                    dcc.Loading(
-                                        id='loading-calculate-status',
-                                        type='default',  # Options: 'default', 'circle', 'dot'
-                                        children=html.Div(id='output-calculate-status', className='mt-2')
-                                    )
+                                    # Loading Spinner and Status Message using dcc.Loading
+                                    # Replace the existing loading section with this:
+                                    html.Div([
+                                        dbc.Spinner(
+                                            id="status-spinner",
+                                            size="sm",  # Small size
+                                            color="primary",
+                                            fullscreen=False,
+                                            spinner_style={'margin-right': '10px'},  # Spacing between spinner and message
+                                        ),
+                                        html.Div(id='output-calculate-status', style={'align-self': 'center'})
+                                    ], style={'display': 'flex', 'align-items': 'center'})
+
+
                                 ], className='buttons-container'),
                                 width={'size': 8, 'order': 2},  # Buttons second on larger screens
                                 xs=12,  # Full width on extra small screens
@@ -235,36 +229,66 @@ def display_page(pathname, session_data):
                     ], className='mb-3'),
 
                     # Button group
-                    dbc.ButtonGroup(
-                        [
-                            dbc.Button(
-                                html.I(className="fa fa-list"),  # Icon for the first button
-                                id='btn-todays-entries',
-                                color='secondary',  # Low-contrast color
-                                outline=True,       # Outline style for low contrast
-                                className='btn-icon'
-                            ),
-                            dbc.Button(
-                                html.I(className="fa fa-chart-bar"),  # Icon for the second button
-                                id='btn-calorie-history',
-                                color='secondary',
-                                outline=True,
-                                className='btn-icon'
-                            ),
-                            dbc.Button(
-                                html.I(className="fa fa-chart-line"),  # Icon for the third button
-                                id='btn-cumulative-calories',
-                                color='secondary',
-                                outline=True,
-                                className='btn-icon'
-                            ),
-                        ],
-                        size='lg',  # Adjust button size
-                        className='mb-3',
+                    # Updated Button group with larger size, padding, and centered alignment
+                    html.Div(
+                        dbc.ButtonGroup(
+                            [
+                                dbc.Button(
+                                    html.I(className="fas fa-list"),
+                                    id='btn-todays-entries',
+                                    color='secondary',
+                                    outline=True,
+                                    className='btn-icon rounded-pill',
+                                    style={
+                                        'width': '80px',
+                                        'height': '80px',
+                                        'padding': '10px',
+                                        'font-size': '24px',
+                                        'margin': '5px'  # Adds spacing between buttons
+                                    }
+                                ),
+                                dbc.Button(
+                                    html.I(className="fas fa-chart-bar"),
+                                    id='btn-calorie-history',
+                                    color='secondary',
+                                    outline=True,
+                                    className='btn-icon rounded-pill',
+                                    style={
+                                        'width': '80px',
+                                        'height': '80px',
+                                        'padding': '10px',
+                                        'font-size': '24px',
+                                        'margin': '5px'
+                                    }
+                                ),
+                                dbc.Button(
+                                    html.I(className="fas fa-chart-line"),
+                                    id='btn-cumulative-calories',
+                                    color='secondary',
+                                    outline=True,
+                                    className='btn-icon rounded-pill',
+                                    style={
+                                        'width': '80px',
+                                        'height': '80px',
+                                        'padding': '10px',
+                                        'font-size': '24px',
+                                        'margin': '5px'
+                                    }
+                                ),
+                            ],
+                            size='lg',
+                            className='mb-3'
+                        ),
+                        style={
+                            'display': 'flex',
+                            'justify-content': 'center'  # Centers the button group horizontally
+                        }
                     ),
+
 
                     # Content container
                     html.Div(id='content-container'),
+
 
                     # Hidden stores for nutritional data
                     dcc.Store(id='nutritional-json-data'),
@@ -276,9 +300,16 @@ def display_page(pathname, session_data):
                     dcc.Store(id='active-button', data='btn-todays-entries'),  # for visualisations main page
                     dcc.Store(id='past-14-days-data', data=[]),  # for visualisation
 
-                ], fluid=True)
-            ])
+                    # Add these to your layout inside dbc.Container or at the appropriate place
+                    # Add this Interval component to your layout
+                    dcc.Interval(id='interval-startup', interval=1*1000, n_intervals=0, max_intervals=1),
 
+                    dcc.Store(id='todays-entries-data'),
+                    dcc.Store(id='calorie-history-data'),
+                    dcc.Store(id='cumulative-calories-data'),
+
+                ], fluid=True)
+        ])
 
 
 
@@ -471,13 +502,12 @@ def update_daily_progress(todays_data):
 
 import time
 from dash.long_callback import DiskcacheLongCallbackManager
-
-
 @app.long_callback(
     output=[
         Output('output-calculate-status', 'children'),
         Output('nutritional-json-data', 'data'),
-        Output('weight-adjustment-div', 'style')
+        Output('weight-adjustment-div', 'style'),
+        Output('status-spinner', 'children')  # Add spinner toggle for tick or error icon
     ],
     inputs=[
         Input('calculate-button', 'n_clicks'),
@@ -489,16 +519,17 @@ from dash.long_callback import DiskcacheLongCallbackManager
         (Output('calculate-button', 'disabled'), True, False),
         (Output('upload-image', 'disabled'), True, False),
         (Output('image-description', 'disabled'), True, False),
+        (Output('status-spinner', 'children'), dbc.Spinner(size="sm", color="primary"), html.I(className="fa fa-check text-success"))
     ],
     prevent_initial_call=True
 )
 def calculate_nutritional_info(set_progress, n_clicks, image_contents, description):
     if n_clicks is None or n_clicks == 0:
-        return ("", None, {'display': 'none'})
+        return ("", None, {'display': 'none'}, "")
 
     if not image_contents and not description:
         set_progress(html.Div("Please add an image or text description."))
-        return ("Please add an image or text description.", None, {'display': 'none'})
+        return ("Please add an image or text description.", None, {'display': 'none'}, html.I(className="fa fa-exclamation-circle text-danger"))
 
     import time
     start_time = time.time()
@@ -506,16 +537,11 @@ def calculate_nutritional_info(set_progress, n_clicks, image_contents, descripti
     base64_image = None
     if image_contents:
         set_progress(html.Div("Processing image..."))
-        # Simulate image processing time
-        # time.sleep(1)
         src_str, base64_image = process_image(image_contents)
 
     set_progress(html.Div("Calculating nutritional information..."))
-    # Simulate API call duration
-    # time.sleep(1)
 
-    # Get nutritional information
-    json_nutrition_std = get_nutritional_info(base64_image, description, detail='core')
+    json_nutrition_std = get_nutritional_info(base64_image, description, detail='all')
 
     if json_nutrition_std:
         end_time = time.time()
@@ -527,11 +553,13 @@ def calculate_nutritional_info(set_progress, n_clicks, image_contents, descripti
         return (
             f"Nutritional information calculated successfully in {calculation_time:.2f} seconds.",
             json_nutrition_std,
-            {'display': 'block'}
+            {'display': 'block'},
+            html.I(className="fa fa-check text-success")  # Success icon
         )
     else:
         set_progress(html.Div("Error in nutritional analysis."))
-        return ("Error in nutritional analysis.", None, {'display': 'none'})
+        return ("Error in nutritional analysis.", None, {'display': 'none'}, html.I(className="fa fa-exclamation-circle text-danger"))
+
 
 
 # Callback to adjust nutritional values based on weight input
@@ -608,97 +636,124 @@ def toggle_sub_bars(n_clicks, is_open, current_text):
 
 
 # from datetime import datetime
-import datetime as datetime_base
 import dash
+from dash.exceptions import PreventUpdate
+
+from dash.exceptions import PreventUpdate
+import base64  # Ensure base64 is imported
+import datetime
 
 @app.callback(
-    Output('output-upload-status', 'children'),
-    Output('output-upload-status', 'is_open'),
-    Output('output-upload-status', 'icon'),
-    Input('upload-button', 'n_clicks'),
-    Input('meal-type-dropdown', 'value'),  # Get the selected meal type
-    Input('selected-date-store', 'data'),
-    State('upload-image', 'filename'),
-    State('upload-image', 'contents'),
-    State('adjusted-nutritional-json-data', 'data'),
-    State('session-store', 'data'),
-
+    [
+        Output('output-upload-status', 'children'),
+        Output('output-upload-status', 'is_open'),
+        Output('output-upload-status', 'icon')
+    ],
+    [
+        Input('upload-button', 'n_clicks')
+    ],
+    [
+        State('meal-type-dropdown', 'value'),  # Changed from Input to State
+        State('selected-date-store', 'data'),   # Changed from Input to State
+        State('upload-image', 'filename'),
+        State('upload-image', 'contents'),
+        State('adjusted-nutritional-json-data', 'data'),
+        State('session-store', 'data'),
+    ],
     prevent_initial_call=True
 )
-def upload_image_to_cloud(n_clicks, meal_type, selected_date,filename, image_contents, adjusted_json_nutrition_std, 
-                          session_data ):
-    if n_clicks and image_contents:
+def upload_image_to_cloud(n_clicks, meal_type, selected_date, filename, image_contents, adjusted_json_nutrition_std, session_data):
+    """
+    Handles the upload of nutritional data and image to Google Cloud and Supabase.
 
-        # username
-        if not session_data or 'username' not in session_data:
-            return 'User not logged in.', dash.no_update, dash.no_update
-        username = session_data['username']
+    Parameters:
+    - n_clicks: Number of times the upload button has been clicked.
+    - meal_type: Selected meal type from the dropdown.
+    - selected_date: The date selected for the entry.
+    - filename: Name of the uploaded image file.
+    - image_contents: Base64-encoded contents of the uploaded image.
+    - adjusted_json_nutrition_std: Adjusted nutritional data.
+    - session_data: User session data containing username.
 
-        print('USERNAME IN UPLOAD FUNCTION', username)
+    Returns:
+    - upload_status: Status message to display to the user.
+    - is_open: Boolean to control the visibility of the status toast.
+    - icon: Icon indicating success, warning, or danger based on the outcome.
+    """
+    if not n_clicks:
+        # If the button hasn't been clicked, do nothing
+        raise PreventUpdate
 
+    # Validate user session
+    if not session_data or 'username' not in session_data:
+        return 'User not logged in.', True, 'warning'
 
-        # Generate the ID
-        id_str, custom_timestamp = generate_id_and_custom_timestamp(selected_date)
-        
+    username = session_data['username']
+    print('USERNAME IN UPLOAD FUNCTION', username)
+
+    # Generate the ID
+    id_str, custom_timestamp = generate_id_and_custom_timestamp(selected_date)
+
+    try:
+        id_int = int(id_str)
+    except ValueError:
+        return 'Error generating ID.', True, 'warning'
+
+    # Rename the image file to the generated ID with .png extension
+    new_filename = f"{id_int}_{username}.png"
+
+    # Process and upload the image
+    if image_contents:
         try:
-            id_int = int(id_str)
-        except ValueError:
-            return 'Error generating ID.', dash.no_update, dash.no_update
-        
-        # Rename the image file to the generated ID with .png extension
-        new_filename = f"{id_int}_{username}.png"
-        
-        # Process the image
-        src_str, base64_image = process_image(image_contents)
-        
-        if base64_image:
-            # Convert base64 image back to bytes for uploading
-            decoded_image = base64.b64decode(base64_image)
-            
-            # Upload image to Google Cloud Storage with the new filename
-            upload_image_to_gcs(GCS_BUCKET, new_filename, decoded_image)
-            
-            # Get current local time
-            local_time = datetime.datetime.now().strftime('%H:%M:%S')
-            
-            # Update the JSON data to include the ID and image filename
-            if adjusted_json_nutrition_std:
-                adjusted_json_nutrition_std['id'] = id_int
-                adjusted_json_nutrition_std['image_filename'] = new_filename
-                adjusted_json_nutrition_std['username'] = username
-                adjusted_json_nutrition_std['meal_type'] = meal_type
-                adjusted_json_nutrition_std['date'] = selected_date
-                adjusted_json_nutrition_std['created_at'] = custom_timestamp  # Add the custom created_at timestamp
+            src_str, base64_image = process_image(image_contents)
+            if base64_image:
+                # Convert base64 image back to bytes for uploading
+                decoded_image = base64.b64decode(base64_image)
 
-
-
-
-                # Push the JSON data to Supabase
-                try:
-                    supabase_client = get_supabase_client()
-                    success = insert_nutrition_data(supabase_client, 'sandbox_nutrition', adjusted_json_nutrition_std)
-                    if success:
-                        # Get current local time
-                        local_time = datetime.datetime.now().strftime('%H:%M:%S')
-                        
-                        # After successful operations
-                        upload_status = f"Success! Added at {local_time}"
-                        return upload_status, True, 'success'
-                    else:
-                        upload_status = f"Image '{new_filename}' uploaded, but error inserting data to Supabase."
-                        return upload_status, True, 'danger'
-                except Exception as e:
-                    print(f"Error with Supabase: {str(e)}")
-                    upload_status = f"Image '{new_filename}' uploaded, but error with Supabase: {str(e)}"
-                    return upload_status, True, 'danger'
+                # Upload image to Google Cloud Storage with the new filename
+                upload_image_to_gcs(GCS_BUCKET, new_filename, decoded_image)
             else:
-                upload_status = f"Image '{new_filename}' uploaded, but no nutritional data to insert."
+                upload_status = f"Error converting and uploading '{new_filename}'."
                 return upload_status, True, 'warning'
-        else:
-            upload_status = "Error processing image."
+        except Exception as e:
+            upload_status = f"Error processing image: {str(e)}"
             return upload_status, True, 'danger'
     else:
-        raise dash.exceptions.PreventUpdate
+        upload_status = "No image uploaded."
+        return upload_status, True, 'warning'
+
+    # Update the JSON data to include the ID and image filename
+    if adjusted_json_nutrition_std:
+        adjusted_json_nutrition_std['id'] = id_int
+        adjusted_json_nutrition_std['image_filename'] = new_filename
+        adjusted_json_nutrition_std['username'] = username
+        adjusted_json_nutrition_std['meal_type'] = meal_type
+        adjusted_json_nutrition_std['date'] = selected_date
+        adjusted_json_nutrition_std['created_at'] = custom_timestamp  # Add the custom created_at timestamp
+
+        # Push the JSON data to Supabase
+        try:
+            supabase_client = get_supabase_client()
+            success = insert_nutrition_data(supabase_client, 'sandbox_nutrition', adjusted_json_nutrition_std)
+            if success:
+                # Get current local time
+                local_time = datetime.datetime.now().strftime('%H:%M:%S')
+
+                # After successful operations
+                upload_status = f"Success! Added at {local_time}"
+                return upload_status, True, 'success'
+            else:
+                upload_status = f"Error inserting data to Supabase."
+                return upload_status, True, 'danger'
+        except Exception as e:
+            print(f"Error with Supabase: {str(e)}")
+            upload_status = f"Errored out with Supabase: {str(e)}"
+            return upload_status, True, 'danger'
+    else:
+        upload_status = "No nutritional information found."
+        return upload_status, True, 'danger'
+
+
 
 # Callback to update today's entries
 @app.callback(

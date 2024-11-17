@@ -15,6 +15,10 @@ def create_todays_entries_layout(todays_nutritional_data):
     - todays_nutritional_data: List of dictionaries containing today's food entries.
     """
 
+    if not todays_nutritional_data:
+        return html.Div("No entries for today.")
+
+
         # Parse created_at strings into datetime objects
     for entry in todays_nutritional_data:
         created_at_str = entry.get('created_at', '')

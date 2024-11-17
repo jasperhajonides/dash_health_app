@@ -1,6 +1,6 @@
 import pandas as pd
 import json
-from functions.nutrition_processing import preprocess_and_load_json
+from functions.nutrition_processing import preprocess_and_load_json, extract_nutrition
 
 
 
@@ -111,9 +111,15 @@ def multiple_api_outputs_to_df(response, full_nutr_dict):
         except ValueError:
             # If it fails, preprocess the content and then load as JSON
             json_obj = preprocess_and_load_json(response.choices[i].message.content)
-        flattened = pd.json_normalize(json_obj)
+        print('JSON OBJECT ########## \n', json_obj)
+        json_obj = extract_nutrition(json_obj)
+        flattened = pd.DataFrame([json_obj]) #pd.json_normalize(json_obj)
 
-        # print('flattened',flattened)
+        # Flatten the JSON object to handle any nested structures
+        # flattened_json = pd.json_normalize(json_obj, sep='_')  # Use `sep='_'` to flatten any nested keys
+        # flattened = pd.DataFrame([flattened_json])
+
+        print('JSON FLATTENED ########## \n', flattened)
 
         # Attempt to convert columns to numeric where possible
         for col in flattened.columns:
@@ -128,12 +134,13 @@ def multiple_api_outputs_to_df(response, full_nutr_dict):
         flattened.columns = flattened.columns.str.lower() #lowercase
 
         # Add the flattened DataFrame to the list
-        dfs.append(flattened)
-
+        dfs.append(pd.DataFrame([json_obj]))
     # Concatenate all DataFrames in the list
     main_df = pd.concat(dfs, ignore_index=True)
 
     # create a single json with averaged values
+    print('MAIN DFFFFFF', main_df)
+    main_df.to_csv('/Users/jasperhajonides/Downloads/test_output_dash_health.csv')
     json_avg = average_df_to_dict(main_df)
 
     # check if the totals of amino acids groups ((conditionally/non)essential ) are present if not sum amino acids up and create these groups.

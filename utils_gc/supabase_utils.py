@@ -41,8 +41,6 @@ def insert_nutrition_data(supabase_client, table_name, data):
 
     # Step 2: Filter the JSON data to include only valid columns
     filtered_data = {key: value for key, value in data.items() if key in valid_columns}
-    print(filtered_data)
-    print('TYPE CREATED AT', type(filtered_data['created_at']))
     response = supabase_client.table(table_name).insert(filtered_data).execute()
     # Correct handling of the response
     if response.data:  # Directly access 'data' attribute from the response

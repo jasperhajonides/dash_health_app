@@ -52,7 +52,7 @@ body {
 
 /* -------- for main mobile app page visualisations */
 
-.btn-icon {
+/* .btn-icon {
     width: 100px;
     height: 100px;
     font-size: 48px;
@@ -70,6 +70,17 @@ body {
 .btn-icon:focus {
     outline: none;
     box-shadow: none;
+} */
+ /* Center icons within circular buttons */
+.btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Adjust the font size of icons if necessary */
+.btn-icon i {
+    font-size: 24px;
 }
 
 
@@ -98,4 +109,18 @@ body {
 /* Show the delete button when the image is present */
 #uploaded-image[src]:hover + #delete-image-button {
     display: block;
+}
+
+
+/* Style for the spinner */
+#status-spinner {
+    font-size: 1em; /* Adjust as needed for size */
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+/* Ensure the status message aligns vertically with the spinner */
+#output-calculate-status {
+    display: flex;
+    align-items: center;
 }

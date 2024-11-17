@@ -78,7 +78,7 @@ def convert_to_grams(json_data):
                     # Check the unit and convert if necessary
                     if 'mg' in value.lower():
                         num /= 1000  # Convert from mg to g
-                    elif any(μg_indicator in value.lower() for μg_indicator in ['μg', 'mcg', 'ug']):
+                    elif any(μg_indicator in value.lower() for μg_indicator in ['μg', 'mcg']):
                         num /= 1e6  # Convert from μg to g
                     # Add the key-value pair to the converted data
                     converted_data[key] = num
@@ -89,45 +89,39 @@ def convert_to_grams(json_data):
     return converted_data
       
 import re
+import re
 
 def extract_nutrition(json_data):
-    # Define patterns for each category
-    carb_pattern = re.compile(r'\b(carb(s|ohydrates?)?)\b', re.IGNORECASE)
-    protein_pattern = re.compile(r'\b(protein)\b', re.IGNORECASE)
-    fat_pattern = re.compile(r'\b(fat)\b', re.IGNORECASE)
-    sat_fat_pattern = re.compile(r'\b(saturated fat)\b', re.IGNORECASE)
-    unsat_fat_pattern = re.compile(r'\b(unsaturated fat)\b', re.IGNORECASE)
-    sugar_pattern = re.compile(r'\b(sugar(s)?)\b', re.IGNORECASE)
-    fiber_pattern = re.compile(r'\b(fiber)\b', re.IGNORECASE)
-    cholesterol_pattern = re.compile(r'\b(cholesterol)\b', re.IGNORECASE)
-    calorie_pattern = re.compile(r'\b(calories|kcal)\b', re.IGNORECASE)
-    weight_pattern = re.compile(r'\b(weight|grams of|portion size|serving size|grams in)\b', re.IGNORECASE)
-    glycemic_index_pattern = re.compile(r'\b(glycemic|GI)\b', re.IGNORECASE)
-    name_pattern = re.compile(r'\b(name|product|file)\b', re.IGNORECASE)
-    description_pattern = re.compile(r'\b(name|product|file)\b', re.IGNORECASE)
+    # Define patterns for each category and their corrected names
+    # Order is important: more specific patterns first
+    patterns = [
+        (re.compile(r'\b(unsaturated[\s_]?fat)\b', re.IGNORECASE), 'unsaturated fat'),
+        (re.compile(r'\b(saturated[\s_]?fat)\b', re.IGNORECASE), 'saturated fat'),
+        (re.compile(r'\b(carb(s|ohydrates?)?)\b', re.IGNORECASE), 'carbohydrates'),
+        (re.compile(r'\b(protein)\b', re.IGNORECASE), 'protein'),
+        (re.compile(r'\b(fat)\b', re.IGNORECASE), 'fat'),
+        (re.compile(r'\b(sugar(s)?)\b', re.IGNORECASE), 'sugar'),
+        (re.compile(r'\b(fiber)\b', re.IGNORECASE), 'fiber'),
+        (re.compile(r'\b(cholesterol)\b', re.IGNORECASE), 'cholesterol'),
+        (re.compile(r'\b(calories|kcal)\b', re.IGNORECASE), 'calories'),
+        (re.compile(r'\b(weight|grams[\s_]?of|portion[\s_]?size|serving[\s_]?size|grams[\s_]?in)\b', re.IGNORECASE), 'weight'),
+        (re.compile(r'\b(glycemic|GI|glycemic[\s_]?index)\b', re.IGNORECASE), 'glycemic index'),
+        (re.compile(r'\b(name|food[\s_]?name|product|file|food)\b', re.IGNORECASE), 'name'),
+        # Add more patterns if needed
+    ]
 
-
-    # Initialize values
-    
-    # nutrients = {
-    #     'name':'','weight': 0, 'calories': 0, 'carbohydrates': 0, 'protein': 0, 'fat': 0, 'saturated fat': 0, 
-    #     'unsaturated fat': 0, 'sugar': 0, 'fiber': 0, 'cholesterol': 0, 'GI': 0, 'units': 1,
-    #     'essential_amino_acids': {}, 'nonessential_amino_acids': {},
-    # }
-    nutrients={}
-
+    # Lists of amino acids
     essential_amino_acids = [
-    "histidine",
-    "isoleucine",
-    "leucine",
-    "lysine",
-    "methionine",
-    "phenylalanine",
-    "threonine",
-    "tryptophan",
-    "valine"
-]
-
+        "histidine",
+        "isoleucine",
+        "leucine",
+        "lysine",
+        "methionine",
+        "phenylalanine",
+        "threonine",
+        "tryptophan",
+        "valine"
+    ]
 
     nonessential_amino_acids = [
         "alanine",
@@ -143,93 +137,34 @@ def extract_nutrition(json_data):
         "tyrosine"
     ]
 
+    # Initialize corrected data with all original keys
+    corrected_data = {}
 
-    # Search and aggregate values
+    # Iterate over each key-value pair in the original JSON data
     for key, value in json_data.items():
-        if carb_pattern.search(key):
-            nutrients['carbohydrates'] = value
-        if protein_pattern.search(key):
-            nutrients['protein'] = value
-        if unsat_fat_pattern.search(key):
-            nutrients['unsaturated fat'] = value
-        elif sat_fat_pattern.search(key):
-            nutrients['saturated fat'] = value
-        elif fat_pattern.search(key): # and not sat_fat_pattern.search(key) and not unsat_fat_pattern.search(key):
-            nutrients['fat'] = value
-        if sugar_pattern.search(key):
-            nutrients['sugar'] = value
-        if fiber_pattern.search(key):
-            nutrients['fiber'] = value
-        if cholesterol_pattern.search(key):
-            nutrients['cholesterol'] = value
-        if calorie_pattern.search(key):
-            nutrients['calories'] = value
-        if weight_pattern.search(key):
-            nutrients['weight'] = value
-        if glycemic_index_pattern.search(key):
-            nutrients['glycemic index'] = value
-        if "name" in key:
-            nutrients['name'] = value
-        if "description" in key:
-            nutrients['description'] = value
-        if "llm_output" in key:
-            nutrients['llm_output'] = value
+        renamed = False  # Flag to check if the key has been renamed
 
-        # add the amino acids if detected
-        if key in essential_amino_acids:
-            nutrients[key] = value
-        if key in nonessential_amino_acids:
-            nutrients[key] = value
+        # Check each pattern to see if the key matches
+        for pattern, corrected_key in patterns:
+            if pattern.fullmatch(key):
+                corrected_data[corrected_key] = value
+                renamed = True
+                break  # Stop checking other patterns if a match is found
+            elif pattern.search(key):
+                corrected_data[corrected_key] = value
+                renamed = True
+                break  # Stop checking other patterns if a match is found
 
+        # If the key was not renamed by the patterns
+        if not renamed:
+            # Check if it's an amino acid
+            if key in essential_amino_acids or key in nonessential_amino_acids:
+                corrected_data[key] = value
+            else:
+                # Retain the original key if it doesn't match any pattern or amino acid list
+                corrected_data[key] = value
 
-    return nutrients
-
-
-
-# def extract_amino_acids(json_data):
-#     # Define patterns for each category
-#     carb_pattern = re.compile(r'\b(carb(s|ohydrates?)?)\b', re.IGNORECASE)
-#     protein_pattern = re.compile(r'\b(protein)\b', re.IGNORECASE)
-
-
-#     # Initialize values
-#     nutrients = {
-#         'name':'','weight': 0, 'calories': 0, 'carbohydrates': 0, 'protein': 0, 'fat': 0, 'saturated fat': 0, 
-#         'unsaturated fat': 0, 'sugar': 0, 'fiber': 0, 'cholesterol': 0, 'GI': 0, 'units': 1
-#     }
-
-#     # Search and aggregate values
-#     for key, value in json_data.items():
-#         if carb_pattern.search(key) and not sugar_pattern.search(key):
-#             nutrients['carbohydrates'] = value
-#         if protein_pattern.search(key):
-#             nutrients['protein'] = value
-#         if fat_pattern.search(key):
-#             nutrients['fat'] = value
-#         if sat_fat_pattern.search(key):
-#             nutrients['saturated fat'] = value
-#         if unsat_fat_pattern.search(key):
-#             nutrients['unsaturated fat'] = value
-#         if sugar_pattern.search(key):
-#             nutrients['sugar'] += value
-#         if fiber_pattern.search(key):
-#             nutrients['fiber'] += value
-#         if cholesterol_pattern.search(key):
-#             nutrients['cholesterol'] += value
-#         if calorie_pattern.search(key):
-#             nutrients['calories'] += value
-#         if weight_pattern.search(key):
-#             nutrients['weight'] += value
-#             print('weight', value)
-#         if glycemic_index_pattern.search(key):
-#             nutrients['GI'] += value
-#         if "name" in key:
-#             nutrients['name'] = value
-#         if "llm_output" in key:
-#             nutrients['llm_output'] = value
-
-
-#     return nutrients
+    return corrected_data
 
 
 
