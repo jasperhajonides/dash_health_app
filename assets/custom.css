@@ -47,3 +47,80 @@ body {
 #nutritional-info {
     /* Add any additional styling as needed */
 }
+
+
+
+/* -------- for main mobile app page visualisations */
+
+/* .btn-icon {
+    width: 100px;
+    height: 100px;
+    font-size: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    margin: 5px;
+}
+
+.btn-icon .fa {
+    margin: 0;
+}
+
+.btn-icon:focus {
+    outline: none;
+    box-shadow: none;
+} */
+ /* Center icons within circular buttons */
+.btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Adjust the font size of icons if necessary */
+.btn-icon i {
+    font-size: 24px;
+}
+
+
+/*  For delete image button */
+.image-preview-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* Style for the delete button */
+#delete-image-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    display: none; /* Hidden by default */
+}
+
+/* Show the delete button when the image is present */
+#uploaded-image[src]:hover + #delete-image-button {
+    display: block;
+}
+
+
+/* Style for the spinner */
+#status-spinner {
+    font-size: 1em; /* Adjust as needed for size */
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+/* Ensure the status message aligns vertically with the spinner */
+#output-calculate-status {
+    display: flex;
+    align-items: center;
+}

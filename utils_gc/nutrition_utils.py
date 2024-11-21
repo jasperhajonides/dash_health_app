@@ -2,7 +2,7 @@
 import json
 import dash
 from dash import html
-import base64
+import re
 # Import your nutrition module (ensure it's in your PYTHONPATH or same directory)
 # Adjust the import statements based on your actual module names and structure
 import sys
@@ -12,8 +12,7 @@ from llm_code.prompt_generation import PromptGenerator
 
 
 
-def get_nutritional_info(base64_image, description='', detail='core'):
-
+def get_nutritional_info(base64_image=None, description='', detail='core'):
     # Initialize nutrition class
     nutrition = NutritionExtraction(detail=detail)
 
@@ -21,35 +20,60 @@ def get_nutritional_info(base64_image, description='', detail='core'):
     pg = PromptGenerator(nutrition_class=nutrition)
     prompts = pg.generate_prompts(name_input='food', weight_input=100)
 
-    if description:
-        prompts['image_text_prompt'] += f' The item in the picture is a {description}'
-
-
-    # Call your nutritional analysis function
     try:
-        stored_image_data = base64_image  # Base64 image data
-                
+        if base64_image:
+            # Use image_text_prompt
+            prompt = prompts['image_text_prompt']
+            if description:
+                prompt += f' The item in the picture is a {description}'
+            stored_image_data = base64_image
 
-        json_nutrition_std, missing_keys = nutrition.openai_api_image(
-            prompt=prompts['image_text_prompt'],
-            image=stored_image_data,
-            n=1
-        )
+            # Call the API with image and prompt
+            json_nutrition_std, missing_keys = nutrition.openai_api_image(
+                prompt=prompt,
+                image=stored_image_data,
+                n=1
+            )
+        elif description:
+            # Use text_prompt
+            prompt = prompts['text_prompt']
+            prompt += f" {description}"
 
-        # post process json
-        json_nutrition_std = post_process_nutritional_info(json_nutrition_std, prompts['image_text_prompt'])
+            # Call the API with text prompt
+            json_nutrition_std, missing_keys = nutrition.openai_api(
+                prompt=prompt,
+                n=1
+            )
+        else:
+            # Should not reach here due to earlier validation
+            print("Error: No image or description provided.")
+            return None
+        print("MISSING KEYS", missing_keys)
+        # Post-process JSON
+        json_nutrition_std = post_process_nutritional_info(json_nutrition_std, prompt)
 
         return json_nutrition_std
     except Exception as e:
         print(f"Error in nutritional analysis: {str(e)}")
         return None
 
+
 def adjust_nutritional_weight_values(json_entry, weight_input):
     # Define keys to exclude from adjustments
     EXCLUDED_KEYS = ['glycemic_index', 'glycemic index','name', 'description', 'meal_type', 'units', 'weight_original']
 
     # Extract and validate weight from json_entry
-    json_weight = max(json_entry.get('weight', 100), 1)  # Ensure weight is at least 1
+    try:
+        json_weight = max(int(json_entry.get('weight', 100)), 1)
+    except ValueError:
+        json_weight = 100  # Default to 100 if the weight cannot be converted to an integer
+
+    # Ensure weight_input and json_weight are converted to numeric types
+    json_weight = str(json_weight) if json_weight is not None else ""
+    json_weight = re.sub(r"[^\d.]", "", json_weight)
+    weight_input = float(weight_input) if isinstance(weight_input, str) else weight_input
+    json_weight = float(json_weight) if isinstance(json_weight, str) else json_weight
+
 
     # Calculate adjustment factor based on weight input
     factor = weight_input / json_weight

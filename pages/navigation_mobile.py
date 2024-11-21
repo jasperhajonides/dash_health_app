@@ -35,7 +35,7 @@ def create_navbar():
                     ),
                     width="auto",
                 ),
-                dbc.Col(dbc.NavbarBrand("Nutrition Monitoring v1.1", class_name="ms-2",style={"fontSize": "18px"})),
+                dbc.Col(dbc.NavbarBrand("Nutrition Monitoring v1.2", class_name="ms-2",style={"fontSize": "18px"})),
                 # dbc.Col(
                 #     dbc.Button(
                 #         html.I(className="fa fa-bars"),
